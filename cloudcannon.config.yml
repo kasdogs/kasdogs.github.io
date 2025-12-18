@@ -1,90 +1,25 @@
-# cloudcannon.config.yml
-
-# 1. DEFINE GLOBAL INPUTS
-_inputs:
-  grid_width:
-    type: select
-    options:
-      - values: "size-quarter"
-        label: "Quarter (25%)"
-      - values: "size-third"
-        label: "Third (33%)"
-      - values: "size-half"
-        label: "Half (50%)"
-      - values: "size-wide"
-        label: "Wide (66%)"
-      - values: "size-full"
-        label: "Full Width (100%)"
-  
-  grid_height:
-    type: select
-    options:
-      - values: ""
-        label: "Auto Height"
-      - values: "size-tall"
-        label: "Tall (Vertical)"
-
-  color_theme:
-    type: select
-    options:
-      - values: ""
-        label: "Light (Default)"
-      - values: "type-dark"
-        label: "Dark (Inverted)"
-
-# 2. DEFINE YOUR PAGE BUILDER (ARRAY STRUCTURES)
-_structures:
-  page_blocks:
-    values:
-      # COMPONENT: HERO TEXT
-      - label: "Hero Statement"
-        _inputs: 
-          grid_width: 
-            type: select
-            options: 
-             - values: "size-half"
-               label: "Half (Standard)"
-             - values: "size-wide"
-               label: "Wide"
-        value:
-          _schema: hero_block
-          grid_width: "size-half"
-          label_top: "00 / Intro"
-          status: "● Online"
-          headline: "Refining chaos into structured clarity."
-          description: "A digital archive exploring the intersection of architecture and code."
-
-      # COMPONENT: STANDARD PROJECT (TEXT)
-      - label: "Project (Text)"
-        value:
-          _schema: text_project
-          grid_width: "size-third"
-          grid_height: ""
-          color_theme: ""
-          meta_label: "01 / Case Study"
-          title: "The Mono Tower"
-          description: "Developing a cohesive visual identity for Tokyo's newest skyscraper."
-          link_text: "View Project"
-          url: "#"
-
-      # COMPONENT: IMAGE CARD
-      - label: "Project (Image)"
-        value:
-          _schema: image_project
-          grid_width: "size-wide"
-          grid_height: "size-tall"
-          image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"
-          alt_text: "Architecture Shot"
-          badge_text: "Featured"
-          url: "#"
-
-      # COMPONENT: ARTICLE / BLOG
-      - label: "Journal Entry"
-        value:
-          _schema: journal_entry
-          grid_width: "size-half"
-          meta_label: "04 / Journal"
-          date: "Sep 24"
-          headline: "Why modular design is the future."
-          excerpt: "Ut enim ad minim veniam, quis nostrud exercitation."
-          url: "#"
+paths:
+  static: ''
+  uploads: uploads
+timezone: America/New_York
+markdown:
+  engine: kramdown
+  options:
+    heading_ids: false
+    gfm: false
+    breaks: false
+    typographer: false
+    attributes: true
+    attribute_elements:
+      inline: right
+      block: below
+      tr: none
+      td: none
+      li: right-of-prefix
+    treat_indentation_as_code: true
+_snippets_imports:
+  jekyll: true
+collections_config:
+  pages:
+    path: ''
+    icon: wysiwyg
