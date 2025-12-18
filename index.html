@@ -1,308 +1,195 @@
+---
+layout: null
+title: Portfolio System V2
+
+# THIS IS THE ARRAY REGION (THE DATA)
+# CloudCannon will generate a UI to add/remove/reorder these blocks.
+page_blocks:
+  - _schema: hero_block
+    grid_width: size-half
+    label_top: 00 / Intro
+    status: "● Online"
+    headline: Refining chaos into structured clarity.
+    description: A digital archive exploring the intersection of brutalist architecture and responsive web design systems.
+
+  - _schema: nav_block
+    grid_width: size-quarter
+    items:
+      - text: Projects ↗
+        url: "#"
+      - text: Journal ↗
+        url: "#"
+      - text: About ↗
+        url: "#"
+
+  - _schema: stats_block
+    grid_width: size-quarter
+    number: "14"
+    text: Selected Works
+
+  - _schema: image_project
+    grid_width: size-wide
+    grid_height: size-tall
+    image: https://images.unsplash.com/photo-1486406146926-c627a92ad1ab
+    alt_text: Corporate Building
+    badge_text: Featured Case Study
+    url: "#"
+
+  - _schema: text_project
+    grid_width: size-third
+    color_theme: ""
+    meta_label: 02 / Case Study
+    title: The Mono Tower
+    description: Developing a cohesive visual identity for Tokyo's newest sustainable skyscraper complex.
+    link_text: View Project
+    url: "#"
+
+  - _schema: text_project
+    grid_width: size-third
+    color_theme: type-dark
+    meta_label: 03 / Case Study
+    title: Neo-Bank App
+    description: A dark-mode interface for a high-frequency trading platform.
+    link_text: View Project
+    url: "#"
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Portfolio_System_v2</title>
-    
+    <title>{{ page.title }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* =========================================
-           1. CONFIGURATION (THE CONTROL PANEL)
-           ========================================= */
         :root {
-            /* COLORS */
-            --bg-canvas: #111111;      /* The lines between boxes (The Grid Lines) */
-            --bg-card: #F4F4F5;        /* Light Grey Paper for cards */
-            --bg-card-dark: #1A1A1A;   /* Dark Grey for inverted cards */
-            
-            --text-main: #111111;      /* Ink Black */
-            --text-sub: #71717A;       /* Muted Grey */
-            --text-inverse: #FFFFFF;   /* Text on dark cards */
-            
-            /* DIMENSIONS */
-            --grid-gap: 1px;           /* Thickness of grid lines */
-            --pad: 2.5rem;             /* Inner padding of cards */
-            
-            /* TYPOGRAPHY */
+            --bg-canvas: #111111; --bg-card: #F4F4F5; --bg-card-dark: #1A1A1A;
+            --text-main: #111111; --text-sub: #71717A; --text-inverse: #FFFFFF;
+            --grid-gap: 1px; --pad: 2.5rem;
             --font-stack: 'Inter', system-ui, sans-serif;
         }
-
-        /* DARK MODE SUPPORT (Auto-switches based on OS settings) */
         @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-canvas: #333333;
-                --bg-card: #111111;
-                --bg-card-dark: #222222;
-                --text-main: #FFFFFF;
-                --text-sub: #888888;
-                --text-inverse: #E5E5E5;
-            }
+            :root { --bg-canvas: #333333; --bg-card: #111111; --bg-card-dark: #222222; --text-main: #FFFFFF; --text-sub: #888888; --text-inverse: #E5E5E5; }
         }
-
-        /* =========================================
-           2. GLOBAL RESET & BASE STYLES
-           ========================================= */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            /* The background color here becomes the "border" color 
-               because the grid items have gaps between them. */
-            background-color: var(--bg-canvas);
-            font-family: var(--font-stack);
-            color: var(--text-main);
-            /* Font smoothing makes text look thinner and sharper on Mac/iOS */
-            -webkit-font-smoothing: antialiased; 
-            line-height: 1.4;
-        }
-
-        /* Standardize links and images */
+        body { background-color: var(--bg-canvas); font-family: var(--font-stack); color: var(--text-main); -webkit-font-smoothing: antialiased; line-height: 1.4; }
         a { text-decoration: none; color: inherit; display: block; height: 100%; }
         img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        /* =========================================
-           3. THE GRID ENGINE
-           ========================================= */
+        
         .layout-grid {
-            display: grid;
-            /* MOBILE DEFAULT: 
-               Start with 1 column. We use media queries below 
-               to expand to 12 columns on larger screens.
-            */
-            grid-template-columns: 1fr; 
-            
-            gap: var(--grid-gap); /* This creates the sharp lines */
-            width: 100%;
-            max-width: 1600px; /* Max constraint for ultra-wide monitors */
-            margin: 0 auto;    /* Center the layout */
-            
-            /* Border at bottom of the whole grid */
-            border-bottom: 1px solid var(--bg-canvas);
+            display: grid; grid-template-columns: 1fr; gap: var(--grid-gap);
+            width: 100%; max-width: 1600px; margin: 0 auto; border-bottom: 1px solid var(--bg-canvas);
         }
-
-        /* =========================================
-           4. THE "BOX" (MODULAR CARD)
-           ========================================= */
-        .box {
-            background-color: var(--bg-card);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: var(--pad);
-            min-height: 300px; /* Default height for empty boxes */
-            transition: opacity 0.3s ease;
-        }
-
-        /* Hover effect: Slight dimming of background to focus content */
+        .box { background-color: var(--bg-card); position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: var(--pad); min-height: 300px; transition: opacity 0.3s ease; }
         .box:hover { opacity: 0.95; }
-
-        /* --- BOX VARIANTS (MODIFIERS) --- */
-        
-        /* Inverted Color Scheme */
-        .box.type-dark {
-            background-color: var(--bg-card-dark);
-            color: var(--text-inverse);
-        }
-        .box.type-dark .label { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.2); }
-
-        /* Image Box (No Padding) */
-        .box.type-image {
-            padding: 0;
-            overflow: hidden; /* Clips the image corners */
-        }
-        
-        /* Image Zoom Animation on Hover */
+        .box.type-dark { background-color: var(--bg-card-dark); color: var(--text-inverse); }
+        .box.type-image { padding: 0; overflow: hidden; }
         .box.type-image img { transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         .box.type-image:hover img { transform: scale(1.05); }
-
-        /* =========================================
-           5. CONTENT STYLING
-           ========================================= */
-        
-        /* The small metadata tag (e.g., "01 / INTRO") */
-        .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em; /* Spaced out letters for readability */
-            font-weight: 600;
-            color: var(--text-sub);
-            padding-bottom: 1rem;
-            margin-bottom: auto; /* Pushes content below it to the bottom */
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-
-        /* Large Headings */
-        h2 {
-            font-size: clamp(1.8rem, 4vw, 3rem); /* Responsive font sizing */
-            font-weight: 300; /* Thin, elegant weight */
-            letter-spacing: -0.03em; /* Tighter tracking for headings */
-            line-height: 1.1;
-            margin-bottom: 1rem;
-        }
-
-        /* Body Text */
-        p {
-            font-size: 1rem;
-            color: var(--text-sub);
-            max-width: 45ch; /* Limit line length for readability (45 characters) */
-            margin-top: 1rem;
-        }
-
-        /* Arrow Icon */
-        .icon-arrow {
-            font-size: 1.2rem;
-            transform: rotate(-45deg); /* Pointing Top-Right */
-            transition: transform 0.3s ease;
-        }
+        .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; color: var(--text-sub); padding-bottom: 1rem; margin-bottom: auto; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .box.type-dark .label { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.2); }
+        h2 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem; }
+        p { font-size: 1rem; color: var(--text-sub); max-width: 45ch; margin-top: 1rem; }
+        .icon-arrow { font-size: 1.2rem; transform: rotate(-45deg); transition: transform 0.3s ease; }
         .box:hover .icon-arrow { transform: rotate(0deg) translateX(5px); }
-
-        /* =========================================
-           6. RESPONSIVE SIZING CLASSES
-           ========================================= */
         
-        /* These classes only activate on screens larger than 768px (Tablets/Desktops).
-           On mobile, everything ignores these and stays 100% width.
-        */
         @media (min-width: 768px) {
-            
-            /* Switch grid to 12 columns */
-            .layout-grid {
-                grid-template-columns: repeat(12, 1fr);
-            }
-
-            /* --- HORIZONTAL SIZES --- */
-            .size-quarter { grid-column: span 3; }  /* 25% Width */
-            .size-third   { grid-column: span 4; }  /* 33% Width */
-            .size-half    { grid-column: span 6; }  /* 50% Width */
-            .size-wide    { grid-column: span 8; }  /* 66% Width */
-            .size-full    { grid-column: span 12; } /* 100% Width */
-
-            /* --- VERTICAL SIZES --- */
-            .size-tall    { grid-row: span 2; min-height: 600px; } 
+            .layout-grid { grid-template-columns: repeat(12, 1fr); }
+            .size-quarter { grid-column: span 3; } .size-third { grid-column: span 4; }
+            .size-half { grid-column: span 6; } .size-wide { grid-column: span 8; }
+            .size-full { grid-column: span 12; } .size-tall { grid-row: span 2; min-height: 600px; }
         }
-
+        /* Specific tweaks for Nav Block */
+        .nav-list { list-style: none; margin-top: auto; font-size: 1.1rem; }
+        .nav-list li { border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0; }
     </style>
 </head>
 <body>
 
     <main class="layout-grid">
 
-        <div class="box size-half">
-            <div class="label">
-                <span>00 / Intro</span>
-                <span>● Online</span>
-            </div>
-            <div>
-                <h2>Refining chaos into <br>structured clarity.</h2>
-                <p>A digital archive exploring the intersection of brutalist architecture and responsive web design systems.</p>
-            </div>
-        </div>
+        {% for block in page.page_blocks %}
 
-        <nav class="box size-quarter type-dark">
-            <div class="label">01 / Menu</div>
-            <ul style="list-style: none; margin-top: auto; font-size: 1.1rem;">
-                <li style="border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0;">
-                    <a href="#">Projects ↗</a>
-                </li>
-                <li style="border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0;">
-                    <a href="#">Journal ↗</a>
-                </li>
-                <li style="border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0;">
-                    <a href="#">About ↗</a>
-                </li>
-                <li style="border-top: 1px solid rgba(255,255,255,0.2); padding: 10px 0;">
-                    <a href="#">Contact ↗</a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="box size-quarter" style="justify-content: center; align-items: center; text-align: center;">
-            <div style="font-size: 4rem; font-weight: 600; line-height: 1;">14</div>
-            <div style="color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; margin-top: 10px;">
-                Selected Works
-            </div>
-        </div>
-
-        <a href="#" class="box size-wide size-tall type-image">
-            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop" alt="Corporate Building Architecture">
-            
-            <div style="position: absolute; top: 0; left: 0; padding: 1.5rem;">
-                <span style="background: white; color: black; padding: 4px 8px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">
-                    Featured Case Study
-                </span>
-            </div>
-        </a>
-
-        <a href="#" class="box size-third">
-            <div class="label">
-                <span>02 / Case Study</span>
-            </div>
-            <div>
-                <h3 style="font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem;">The Mono Tower</h3>
-                <p style="font-size: 0.9rem;">
-                    Developing a cohesive visual identity for Tokyo's newest sustainable skyscraper complex.
-                </p>
-                <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.8rem; font-weight: 600;">View Project</span>
-                    <span class="icon-arrow">→</span>
+            {% if block._schema == 'hero_block' %}
+            <div class="box {{ block.grid_width }}">
+                <div class="label">
+                    <span>{{ block.label_top }}</span>
+                    <span class="editable">{{ block.status }}</span>
+                </div>
+                <div>
+                    <h2 class="editable">{{ block.headline }}</h2>
+                    <p class="editable">{{ block.description }}</p>
                 </div>
             </div>
-        </a>
 
-        <a href="#" class="box size-third type-dark">
-            <div class="label">
-                <span>03 / Case Study</span>
-            </div>
-            <div>
-                <h3 style="font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem;">Neo-Bank App</h3>
-                <p style="font-size: 0.9rem; color: #aaa;">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.
-                </p>
-                <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.8rem; font-weight: 600;">View Project</span>
-                    <span class="icon-arrow">→</span>
+            {% elsif block._schema == 'nav_block' %}
+            <nav class="box {{ block.grid_width }} type-dark">
+                <div class="label">01 / Menu</div>
+                <ul class="nav-list">
+                    {% for link in block.items %}
+                    <li><a href="{{ link.url }}" class="editable">{{ link.text }}</a></li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            {% elsif block._schema == 'stats_block' %}
+            <div class="box {{ block.grid_width }}" style="justify-content: center; align-items: center; text-align: center;">
+                <div class="editable" style="font-size: 4rem; font-weight: 600; line-height: 1;">{{ block.number }}</div>
+                <div class="editable" style="color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; margin-top: 10px;">
+                    {{ block.text }}
                 </div>
             </div>
-        </a>
 
-        <a href="#" class="box size-half">
-            <div class="label">
-                <span>04 / Journal</span>
-                <span>Sep 24</span>
-            </div>
-            <h2 style="font-size: 2rem;">Why modular design systems are the future of web scalability.</h2>
-            <p>
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
-            </p>
-            <span style="margin-top: 2rem; display: block; text-decoration: underline; font-size: 0.9rem;">Read Article</span>
-        </a>
+            {% elsif block._schema == 'text_project' %}
+            <a href="{{ block.url }}" class="box {{ block.grid_width }} {{ block.grid_height }} {{ block.color_theme }}">
+                <div class="label">
+                    <span>{{ block.meta_label }}</span>
+                </div>
+                <div>
+                    <h3 class="editable" style="font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem;">{{ block.title }}</h3>
+                    <p class="editable" style="font-size: 0.9rem;">{{ block.description }}</p>
+                    <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.8rem; font-weight: 600;">{{ block.link_text }}</span>
+                        <span class="icon-arrow">→</span>
+                    </div>
+                </div>
+            </a>
 
-        <a href="#" class="box size-half type-image">
-            <img src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1000&auto=format&fit=crop" alt="Abstract Lines">
-            <div style="position: absolute; bottom: 0; right: 0; padding: 1.5rem;">
-                 <span style="background: white; color: black; padding: 4px 8px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">
-                    Photography
-                </span>
-            </div>
-        </a>
+            {% elsif block._schema == 'image_project' %}
+            <a href="{{ block.url }}" class="box {{ block.grid_width }} {{ block.grid_height }} type-image">
+                <img src="{{ block.image }}" alt="{{ block.alt_text }}">
+                <div style="position: absolute; top: 0; left: 0; padding: 1.5rem;">
+                    <span class="editable" style="background: white; color: black; padding: 4px 8px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">
+                        {{ block.badge_text }}
+                    </span>
+                </div>
+            </a>
+
+            {% elsif block._schema == 'journal_entry' %}
+            <a href="{{ block.url }}" class="box {{ block.grid_width }}">
+                <div class="label">
+                    <span>{{ block.meta_label }}</span>
+                    <span>{{ block.date }}</span>
+                </div>
+                <h2 class="editable" style="font-size: 2rem;">{{ block.headline }}</h2>
+                <p class="editable">{{ block.excerpt }}</p>
+                <span style="margin-top: 2rem; display: block; text-decoration: underline; font-size: 0.9rem;">Read Article</span>
+            </a>
+
+            {% endif %}
+
+        {% endfor %}
 
         <footer class="box size-full" style="min-height: auto; padding: 4rem 2.5rem; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 2rem;">
             <div>
-                <h2 style="font-size: 1.5rem; margin: 0;">System_V2</h2>
-                <p style="margin: 0; font-size: 0.8rem;">© 2024. All Rights Reserved.</p>
+                <h2 class="editable" style="font-size: 1.5rem; margin: 0;">System_V2</h2>
+                <p class="editable" style="margin: 0; font-size: 0.8rem;">© 2024. All Rights Reserved.</p>
             </div>
-            
             <div style="margin-left: auto; display: flex; gap: 2rem; font-size: 0.9rem;">
                 <a href="#">LinkedIn</a>
                 <a href="#">Instagram</a>
-                <a href="#">Email</a>
             </div>
         </footer>
 
