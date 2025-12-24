@@ -221,7 +221,7 @@
         }
 
         .btn {
-            padding: 12px 20px; font-size: 0.95rem; border: none; border-radius: 5px;
+            padding: 12px 20px; font-size: 0.80rem; border: none; border-radius: 5px;
             cursor: pointer; font-weight: bold; text-transform: uppercase;
             box-shadow: 0 4px 0 #000; transition: transform 0.1s;
             min-width: 90px;
@@ -230,26 +230,73 @@
         .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
         
-        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; font-size: 1.2rem; max-width: 100%; }
-        .btn-clear { background: #c0392b; color: white; }
-        .btn-rebet { background: #3498db; color: white; }
-        .btn-special { background: #8e44ad; color: white; }
+        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; max-width: 100%; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+        .btn-clear { background: #c0392b; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+        .btn-rebet { background: #3498db; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+		.btn-special { background: #8e44ad; color: white; font-size: clamp(9px, 2vw, 12px) !important;
+			
+			
+			/* Text Wrapping Logic */
+			white-space: normal;      /* Allow text to wrap to a second line */
+			word-break: break-word;   /* Force long words (like Romanosky) to break if needed */
+			line-height: 1.1;         
+			padding: 6px 2px
+			min-height: 40px;
+			
+			/* Box Model & Positioning */
+			min-width: 0;             /* Allow flex item to shrink below content size */
+			
+			/* Flex alignment to center multi-line text vertically */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
         
-        .special-menu {
-            display: none;
-            gap: 8px; /* Slightly tighter gap for grid */
-            width: 100%;
-            background: #222;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #444;
-        }
-        
-        .special-menu.active { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); /* Forces 5 equal columns */
-        }
+		.special-menu {
+			display: none;
+			gap: 5px; 
+			width: 100%;
+			background: #222;
+			padding: 6px; 
+			border-radius: 8px;
+			margin-bottom: 10px;
+			border: 1px solid #444;
+			box-sizing: border-box; 
+		}
+		
+		.special-menu.active { 
+			display: grid; 
+			grid-template-columns: repeat(5, 1fr); 
+			grid-auto-rows: 1fr; 
+		}
+		
+		.special-menu .btn {
+			/* SIZE: Smaller font clamp (8px to 11px) */
+			font-size: clamp(8px, 2vw, 12px) !important;
+			
+			/* HEIGHT: Reduced from 40px to 32px for a compact look */
+			min-height: 32px;
+			height: 100%;
+			
+			/* SPACING: Tighter padding */
+			padding: 10px;
+			
+			/* TEXT LAYOUT: Tighter lines, forced wrapping */
+			line-height: 1.0;
+			white-space: normal;
+			word-break: break-word;
+			text-align: center;
+			
+			/* POSITIONING */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			
+			/* VISUALS: Flat look to reduce visual noise */
+			box-shadow: none;
+			border: 1px solid rgba(255,255,255,0.15);
+			min-width: 0;
+		}
 
         .msg-display {
             min-height: 25px; margin-bottom: 10px; 
@@ -274,28 +321,31 @@
 		
 		/* --- CHIP SELECTOR --- */
         .chip-bar {
-            display: flex;
-            justify-content: center;
+			display: flex;
+			justify-content: center;
             gap: 36px;
             background: #1e5a30; /* Match felt color */
             width: 100%;
-            padding: 10px 0 20px 54px; /* Added 40px left padding */
-            box-sizing: border-box;    /* Ensures padding doesn't expand the width */
+            padding: 3% 0 2% 5%; 
             border-bottom-left-radius: 15px;
-            border-bottom-right-radius: 15px;
-            margin-top: -60px; /* Pull up to overlap SVG bottom */
-            position: relative;
-            z-index: 5;
-            box-shadow: 0 10px 10px -5px rgba(0,0,0,0.5);
+			border-bottom-right-radius: 15px;
+			box-shadow: 0 10px 10px -5px rgba(0,0,0,0.5);
+			position: relative;
+			z-index: 5;
+			box-sizing: border-box;
+            margin-top: -5%; /* Pull up to overlap SVG bottom */
             margin-bottom: 20px;
         }
 
         .chip {
-            width: 36px; height: 36px;
+            width: clamp(36px, 10vw, 40px);
+			height: clamp(36px, 10vw, 40px);
             border-radius: 50%;
             border: 4px dashed white;
             display: flex; justify-content: center; align-items: center;
-            font-weight: bold; font-size: 12px; color: white;
+            font-weight: bold; 
+			font-size: clamp(10px, 3vw, 13px); 
+			color: white;
             cursor: pointer; text-shadow: 1px 1px 2px black;
             box-shadow: 0 3px 5px rgba(0,0,0,0.5);
             transition: transform 0.1s, box-shadow 0.1s;
@@ -394,7 +444,7 @@
                     <button class="btn btn-clear" onclick="clearBets()" id="btnClear">Clear</button>
                     <button class="btn btn-rebet" onclick="rebet()" id="btnRebet">Rebet</button>
                     <button class="btn btn-rebet" onclick="doubleBet()" id="btnDouble">x2</button>
-                    <button class="btn btn-special" onclick="toggleSpecial()" id="btnSpecial">Pro Bets</button>
+                    <button class="btn btn-special" onclick="toggleSpecial()" id="btnSpecial">Easy Bets</button>
                 </div>
                 <div class="controls-row">
                     <button class="btn btn-spin" onclick="spin()" id="spinBtn">SPIN</button>
@@ -429,23 +479,58 @@
         const SPIN_DURATION_MS = 6000; 
         const MAX_HISTORY = 15;
 
-        // --- AUDIO IMPLEMENTATION ---
+// --- AUDIO IMPLEMENTATION ---
         let isMuted = false;
-
-        // Ensure these files exist in the same directory, or the browser will show 404s
-        const sounds = {
-            click: new Audio('click.mp3'),
-            spin: new Audio('spin.mp3'),
-            win: new Audio('win.mp3'),
-            lose: new Audio('lose.mp3')
+        let audioContext = null; // Use Web Audio API context for better mobile support
+        
+        // Define sounds with their paths
+        const soundFiles = {
+            click: 'click.mp3',
+            spin: 'spin.mp3',
+            win: 'win.mp3',
+            lose: 'lose.mp3'
         };
+
+        const sounds = {};
+
+        // Preload sounds
+        Object.keys(soundFiles).forEach(key => {
+            const audio = new Audio(soundFiles[key]);
+            // Mobile Safari requires audio to be loaded to play consistently
+            audio.preload = 'auto'; 
+            sounds[key] = audio;
+        });
 
         // Configuration
         sounds.click.volume = 0.4;
         sounds.spin.volume = 0.5;
-        sounds.spin.loop = false; // Spin sound loops while wheel turns
+        sounds.spin.loop = false;
         sounds.win.volume = 0.6;
         sounds.lose.volume = 0.5;
+
+        // --- MOBILE UNLOCK FUNCTION ---
+        // We must play a silent sound on the FIRST user interaction to unlock the audio engine
+        function unlockAudio() {
+            const unlocker = new Audio('click.mp3'); 
+            unlocker.volume = 0;
+            
+            // Try to play it instantly
+            const playPromise = unlocker.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // Audio unlocked! Remove the listeners
+                    document.removeEventListener('click', unlockAudio);
+                    document.removeEventListener('touchstart', unlockAudio);
+                }).catch(error => {
+                    console.log('Audio unlock failed (yet): ' + error);
+                });
+            }
+        }
+
+        // Add listeners to unlock audio on the very first touch/click anywhere
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
 
         function toggleMute() {
             isMuted = !isMuted;
@@ -454,8 +539,10 @@
             if(isMuted) {
                 btn.innerText = "MUTED";
                 btn.classList.add('muted');
-                // Immediately silence any playing audio
-                Object.values(sounds).forEach(s => s.pause());
+                Object.values(sounds).forEach(s => {
+                    s.pause();
+                    s.currentTime = 0;
+                });
             } else {
                 btn.innerText = "Audio ON";
                 btn.classList.remove('muted');
@@ -467,12 +554,30 @@
             
             const s = sounds[name];
             if(s) {
-                // For non-looping sounds, reset time to allow rapid re-play
-                if(!s.loop) {
-                    s.currentTime = 0;
+                // Determine if the sound is currently playing
+                const isPlaying = s.currentTime > 0 && !s.paused && !s.ended && s.readyState > 2;
+
+                if (isPlaying) {
+                    // For 'click', we want rapid fire. Clone it to allow overlap.
+                    if (name === 'click') {
+                        const clone = s.cloneNode();
+                        clone.volume = s.volume;
+                        clone.play().catch(() => {});
+                        return;
+                    }
+                    // For spin, reset it
+                    if (name === 'spin') {
+                        s.currentTime = 0;
+                    }
+                } else {
+                     // Not playing? Reset and go.
+                     if(!s.loop) s.currentTime = 0;
                 }
-                // Play and catch errors (e.g., user hasn't interacted with page yet)
-                s.play().catch(e => console.warn(`Audio '${name}' blocked or missing.`, e));
+
+                s.play().catch(e => {
+                    // Suppress "The play() request was interrupted" errors common on mobile
+                    console.warn(`Audio '${name}' blocked.`, e);
+                });
             }
         }
 
