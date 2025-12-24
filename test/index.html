@@ -230,16 +230,18 @@
         .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
         
-        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; max-width: 100%; word-break: break-word; min-width: 0;}
-        .btn-clear { background: #c0392b; color: white; word-break: break-word; min-width: 0;}
-        .btn-rebet { background: #3498db; color: white; word-break: break-word; min-width: 0;}
-		.btn-special { background: #8e44ad; color: white;
+        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; max-width: 100%; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+        .btn-clear { background: #c0392b; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+        .btn-rebet { background: #3498db; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
+		.btn-special { background: #8e44ad; color: white; font-size: clamp(9px, 2vw, 12px) !important;
+			
 			
 			/* Text Wrapping Logic */
 			white-space: normal;      /* Allow text to wrap to a second line */
 			word-break: break-word;   /* Force long words (like Romanosky) to break if needed */
-			line-height: 1.1;         /* Tighter line spacing for wrapped text */
-			text-align: center;
+			line-height: 1.1;         
+			padding: 6px 2px
+			min-height: 40px;
 			
 			/* Box Model & Positioning */
 			min-width: 0;             /* Allow flex item to shrink below content size */
@@ -264,9 +266,7 @@
 
 		.special-menu.active { 
 			display: grid; 
-			/* Strictly enforce 5 columns */
 			grid-template-columns: repeat(5, 1fr); 
-			/* Make all rows equal height based on the tallest button */
 			grid-auto-rows: 1fr; 
 		}
 
