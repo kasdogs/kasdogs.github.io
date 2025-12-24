@@ -28,6 +28,7 @@
             margin: 0;
             padding: 10px;
             user-select: none;
+            -webkit-tap-highlight-color: transparent; /* Fix for mobile tap flash */
         }
 
         /* --- LAYOUT --- */
@@ -83,30 +84,32 @@
         .gold-text { color: var(--gold); font-weight: bold; }
         .high-score { border-left: 1px solid #555; padding-left: 15px; color: #aaa; font-size: 0.8rem; }
 
-		/* MUTE BUTTON STYLES */
+		/* --- UPDATED MUTE BUTTON --- */
 		.mute-btn {
-			position: absolute; /* fix position relative to the page */
-			top: 8px;          /* distance from top */
-			right: 8px;        /* distance from right */
-			z-index: 100;       /* ensure it stays on top of other elements */
-			
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			z-index: 100;
+			width: 32px;
+			height: 32px;
+			border-radius: 5px;
+			padding: 0;
 			background: #333;
 			border: 1px solid #555;
-			color: #ccc;
-			border-radius: 20px;
-			padding: 5px 10px;  /* slightly larger hit area */
-			font-size: 0.55rem;
 			cursor: pointer;
-			text-transform: uppercase;
-			font-weight: bold;
+			box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 			transition: all 0.2s;
-			min-width: 60px;
-			text-align: center;
-			box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* added shadow for visibility */
+			display: flex;
+			justify-content: center;
+			align-items: center;
 		}
-		.mute-btn:hover { background: #444; color: white; }
-		.mute-btn.muted { background: var(--red); color: white; border-color: var(--red); }
 
+		.mute-btn:hover { background: #444; border-color: #888; }
+		.mute-btn.muted { background: rgba(192, 57, 43, 0.2); border-color: #c0392b; }
+		.mute-btn svg { width: 18px; height: 18px; fill: #ccc; pointer-events: none; }
+		.mute-btn:hover svg { fill: white; }
+		.mute-btn.muted svg { fill: #c0392b; } 
+		
         .history-bar {
             display: flex;
             gap: 3px;
@@ -234,19 +237,12 @@
         .btn-clear { background: #c0392b; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
         .btn-rebet { background: #3498db; color: white; word-break: break-word; min-width: 0; font-size: clamp(9px, 2vw, 12px) !important;}
 		.btn-special { background: #8e44ad; color: white; font-size: clamp(9px, 2vw, 12px) !important;
-			
-			
-			/* Text Wrapping Logic */
-			white-space: normal;      /* Allow text to wrap to a second line */
-			word-break: break-word;   /* Force long words (like Romanosky) to break if needed */
+			white-space: normal;      
+			word-break: break-word;   
 			line-height: 1.1;         
 			padding: 6px 2px
 			min-height: 40px;
-			
-			/* Box Model & Positioning */
-			min-width: 0;             /* Allow flex item to shrink below content size */
-			
-			/* Flex alignment to center multi-line text vertically */
+			min-width: 0;             
 			display: flex;
 			justify-content: center;
 			align-items: center;
@@ -271,28 +267,17 @@
 		}
 		
 		.special-menu .btn {
-			/* SIZE: Smaller font clamp (8px to 11px) */
 			font-size: clamp(8px, 2vw, 12px) !important;
-			
-			/* HEIGHT: Reduced from 40px to 32px for a compact look */
 			min-height: 32px;
 			height: 100%;
-			
-			/* SPACING: Tighter padding */
 			padding: 10px;
-			
-			/* TEXT LAYOUT: Tighter lines, forced wrapping */
 			line-height: 1.0;
 			white-space: normal;
 			word-break: break-word;
 			text-align: center;
-			
-			/* POSITIONING */
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			
-			/* VISUALS: Flat look to reduce visual noise */
 			box-shadow: none;
 			border: 1px solid rgba(255,255,255,0.15);
 			min-width: 0;
@@ -324,7 +309,7 @@
 			display: flex;
 			justify-content: center;
             gap: 36px;
-            background: #1e5a30; /* Match felt color */
+            background: #1e5a30;
             width: 100%;
             padding: 3% 0 2% 5%; 
             border-bottom-left-radius: 15px;
@@ -333,7 +318,7 @@
 			position: relative;
 			z-index: 5;
 			box-sizing: border-box;
-            margin-top: -5%; /* Pull up to overlap SVG bottom */
+            margin-top: -5%;
             margin-bottom: 20px;
         }
 
@@ -355,7 +340,6 @@
         .chip:hover { transform: translateY(-3px); }
         .chip:active { transform: scale(0.95); }
         
-        /* Active State (Selected) */
         .chip.active { 
             border-style: solid; 
             box-shadow: 0 0 15px var(--gold), inset 0 0 10px rgba(0,0,0,0.5); 
@@ -363,7 +347,6 @@
             z-index: 10;
         }
 
-        /* Denomination Colors */
         .chip-10 { background: #e74c3c; border-color: white; }
         .chip-20 { background: #828282; border-color: white; }
         .chip-50 { background: #e89149; border-color: white; }
@@ -371,7 +354,7 @@
     </style>
 </head>
 <body>
-    <button class="mute-btn" id="btnMute" onclick="toggleMute()">Audio ON</button>
+    <button class="mute-btn" id="btnMute" onclick="toggleMute()"></button>
 
     <header>
         <div class="stats-row">
@@ -470,7 +453,7 @@
         // --- CONSTANTS ---
         const WHEEL_ORDER = [0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3, 24, 36, 13, 1, '00', 27, 10, 25, 29, 12, 8, 19, 31, 18, 6, 21, 33, 16, 4, 23, 35, 14, 2];
         const REDS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-        const SNAKE_NUMS = [1, 5, 9, 12, 14, 16, 19, 23, 27, 30, 32, 34, 36]; // Corrected snake numbers
+        const SNAKE_NUMS = [1, 5, 9, 12, 14, 16, 19, 23, 27, 30, 32, 34, 36]; 
         
         const CELL_W = 60;
         const CELL_H = 50;
@@ -479,105 +462,123 @@
         const SPIN_DURATION_MS = 6000; 
         const MAX_HISTORY = 15;
 
-// --- AUDIO IMPLEMENTATION ---
-        let isMuted = false;
-        let audioContext = null; // Use Web Audio API context for better mobile support
+        // --- AUDIO IMPLEMENTATION (WEB AUDIO API) ---
+        // Web Audio API is required for low-latency, high-concurrency audio on mobile.
         
-        // Define sounds with their paths
-        const soundFiles = {
-            click: 'click.mp3',
-            spin: 'spin.mp3',
-            win: 'win.mp3',
-            lose: 'lose.mp3'
+        let isMuted = false;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        const soundConfig = {
+            click: { url: 'click.mp3', vol: 0.4 },
+            spin:  { url: 'spin.mp3',  vol: 0.5 },
+            win:   { url: 'win.mp3',   vol: 0.6 },
+            lose:  { url: 'lose.mp3',  vol: 0.5 }
         };
 
-        const sounds = {};
+        const soundBuffers = {};
+        let currentSpinSource = null;
 
-        // Preload sounds
-        Object.keys(soundFiles).forEach(key => {
-            const audio = new Audio(soundFiles[key]);
-            // Mobile Safari requires audio to be loaded to play consistently
-            audio.preload = 'auto'; 
-            sounds[key] = audio;
-        });
-
-        // Configuration
-        sounds.click.volume = 0.4;
-        sounds.spin.volume = 0.5;
-        sounds.spin.loop = false;
-        sounds.win.volume = 0.6;
-        sounds.lose.volume = 0.5;
-
-        // --- MOBILE UNLOCK FUNCTION ---
-        // We must play a silent sound on the FIRST user interaction to unlock the audio engine
-        function unlockAudio() {
-            const unlocker = new Audio('click.mp3'); 
-            unlocker.volume = 0;
-            
-            // Try to play it instantly
-            const playPromise = unlocker.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    // Audio unlocked! Remove the listeners
-                    document.removeEventListener('click', unlockAudio);
-                    document.removeEventListener('touchstart', unlockAudio);
-                }).catch(error => {
-                    console.log('Audio unlock failed (yet): ' + error);
-                });
+        // Load all sounds into buffers
+        async function loadAllSounds() {
+            for (const [key, config] of Object.entries(soundConfig)) {
+                try {
+                    const response = await fetch(config.url);
+                    const arrayBuffer = await response.arrayBuffer();
+                    soundBuffers[key] = await audioCtx.decodeAudioData(arrayBuffer);
+                } catch (e) {
+                    console.warn(`Audio ${key} failed to load:`, e);
+                }
             }
         }
+        
+        // Start loading immediately
+        loadAllSounds();
 
-        // Add listeners to unlock audio on the very first touch/click anywhere
+        // Unlock AudioContext on first interaction (Required for iOS)
+        function unlockAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // Remove listeners once triggers
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        }
+
         document.addEventListener('click', unlockAudio);
         document.addEventListener('touchstart', unlockAudio);
 
-        function toggleMute() {
-            isMuted = !isMuted;
-            const btn = document.getElementById('btnMute');
-            
-            if(isMuted) {
-                btn.innerText = "MUTED";
-                btn.classList.add('muted');
-                Object.values(sounds).forEach(s => {
-                    s.pause();
-                    s.currentTime = 0;
-                });
-            } else {
-                btn.innerText = "Audio ON";
-                btn.classList.remove('muted');
+        function playSound(name) {
+            if(isMuted || !soundBuffers[name]) return;
+
+            // Stop previous spin if we are starting a new spin (just in case)
+            if (name === 'spin' && currentSpinSource) {
+                try { currentSpinSource.stop(); } catch(e){}
+                currentSpinSource = null;
+            }
+
+            // Create a source node from the buffer
+            const source = audioCtx.createBufferSource();
+            source.buffer = soundBuffers[name];
+
+            // Create a gain node for volume control
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = soundConfig[name].vol;
+
+            // Connect graph: Source -> Gain -> Destination
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // Play now
+            source.start(0);
+
+            // Keep track of the spin sound so we can stop it later
+            if (name === 'spin') {
+                currentSpinSource = source;
+            }
+        }
+        
+        function stopSound(name) {
+            if (name === 'spin' && currentSpinSource) {
+                try { 
+                    currentSpinSource.stop();
+                    currentSpinSource = null;
+                } catch(e) {
+                    console.log('Error stopping sound', e);
+                }
             }
         }
 
-        function playSound(name) {
-            if(isMuted) return;
+		// --- AUDIO ICONS ---
+        const ICON_SOUND_ON = `
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>`;
+
+        const ICON_SOUND_OFF = `
+            <svg viewBox="0 0 24 24">
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+            </svg>`;
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            localStorage.setItem('rouletteMuted', isMuted);
+            updateMuteUI();
             
-            const s = sounds[name];
-            if(s) {
-                // Determine if the sound is currently playing
-                const isPlaying = s.currentTime > 0 && !s.paused && !s.ended && s.readyState > 2;
+            // If muting, kill any active long sounds
+            if (isMuted && currentSpinSource) {
+                stopSound('spin');
+            }
+        }
 
-                if (isPlaying) {
-                    // For 'click', we want rapid fire. Clone it to allow overlap.
-                    if (name === 'click') {
-                        const clone = s.cloneNode();
-                        clone.volume = s.volume;
-                        clone.play().catch(() => {});
-                        return;
-                    }
-                    // For spin, reset it
-                    if (name === 'spin') {
-                        s.currentTime = 0;
-                    }
-                } else {
-                     // Not playing? Reset and go.
-                     if(!s.loop) s.currentTime = 0;
-                }
-
-                s.play().catch(e => {
-                    // Suppress "The play() request was interrupted" errors common on mobile
-                    console.warn(`Audio '${name}' blocked.`, e);
-                });
+        function updateMuteUI() {
+            const btn = document.getElementById('btnMute');
+            if(isMuted) {
+                btn.innerHTML = ICON_SOUND_OFF;
+                btn.classList.add('muted');
+            } else {
+                btn.innerHTML = ICON_SOUND_ON;
+                btn.classList.remove('muted');
             }
         }
 
@@ -591,9 +592,13 @@
         let currentWheelRotation = 0;
         let history = [];
         let highScore = localStorage.getItem('rouletteProMaxHighScore') || 500;
-		
 
         window.onload = () => {
+            // Restore Mute State
+            const savedMute = localStorage.getItem('rouletteMuted');
+            if (savedMute === 'true') isMuted = true;
+            updateMuteUI();
+
             document.getElementById('highScoreDisplay').innerText = highScore;
             drawWheel();
             drawBoard();
@@ -691,7 +696,7 @@
 
             const HIT_SIZE = 16; 
             
-            // --- 1. VERTICAL SPLITS (Side-by-Side numbers) ---
+            // --- 1. VERTICAL SPLITS ---
             for (let c = 0; c < 11; c++) {
                 const x = GRID_X + (c + 1) * CELL_W - (HIT_SIZE / 2);
                 for (let r = 0; r < 3; r++) {
@@ -702,7 +707,7 @@
                 }
             }
 
-            // --- 2. HORIZONTAL SPLITS (Stacked numbers) ---
+            // --- 2. HORIZONTAL SPLITS ---
             for (let c = 0; c < 12; c++) {
                 const x = GRID_X + c * CELL_W + 5;
                 for (let r = 0; r < 2; r++) {
@@ -713,7 +718,7 @@
                 }
             }
 
-            // --- 3. CORNERS (Quad bets) ---
+            // --- 3. CORNERS ---
             for (let c = 0; c < 11; c++) {
                 const x = GRID_X + (c + 1) * CELL_W - (HIT_SIZE / 2);
                 for (let r = 0; r < 2; r++) {
@@ -723,52 +728,35 @@
                 }
             }
 
-            // --- 4. STREETS (Top and Bottom edges) ---
+            // --- 4. STREETS ---
             for (let c = 0; c < 12; c++) {
                 const x = GRID_X + c * CELL_W;
                 const startNum = (c * 3) + 1; 
-                
-                // Top Street (Rows 3, 6, 9...)
+                // Top Street
                 drawHitbox(`street_${startNum}`, x, GRID_Y - 15, CELL_W, 15, `Street ${startNum}-${startNum+2}`);
-                
-                // Bottom Street (Rows 1, 4, 7...) - NEW
-                // Positions at the bottom of the grid, slightly overlapping the outside bets
+                // Bottom Street
                 drawHitbox(`street_${startNum}`, x, GRID_Y + (CELL_H * 3), CELL_W, 15, `Street ${startNum}-${startNum+2}`);
             }
 
-            // --- 5. SIX LINES (Top and Bottom intersections) ---
+            // --- 5. SIX LINES ---
             for (let c = 0; c < 11; c++) {
                 const x = GRID_X + (c+1) * CELL_W - 10;
                 const startNum = (c * 3) + 1;
-
                 // Top Six Line
                 drawHitbox(`sixline_${startNum}`, x, GRID_Y - 15, 20, 15, `Six Line`);
-
-                // Bottom Six Line - NEW
+                // Bottom Six Line
                 drawHitbox(`sixline_${startNum}`, x, GRID_Y + (CELL_H * 3), 20, 15, `Six Line`);
             }
 
-            // --- 6. ZERO COMPLEX (Precise Layout) ---
-            
-            // Vertical Splits: 0/1, 00/3, 0/2, 00/2
+            // --- 6. ZERO COMPLEX ---
             drawHitbox('split_0_1', GRID_X - 10, GRID_Y + (CELL_H*2)+5, 20, CELL_H-10, "Split 0-1");
             drawHitbox('split_0_2', GRID_X - 10, GRID_Y + CELL_H + (CELL_H/2), 20, CELL_H/2, "Split 0-2");
             drawHitbox('split_00_2', GRID_X - 10, GRID_Y + CELL_H, 20, CELL_H/2, "Split 00-2");
             drawHitbox('split_00_3', GRID_X - 10, GRID_Y+5, 20, CELL_H-10, "Split 00-3");
-
-            // Basket / Trios
             drawHitbox('trio_0_1_2', GRID_X - 10, GRID_Y + (CELL_H*2) - 10, 20, 20, "Basket 0-1-2");
             drawHitbox('trio_00_2_3', GRID_X - 10, GRID_Y + CELL_H - 10, 20, 20, "Basket 00-2-3");
-            
-            // 0-00 Split
             drawHitbox('split_0_00', 20, GRID_Y + zeroH - 10, GRID_X-20, 20, "Split 0-00");
-
-            // THE MONSTER: Top Line (0, 00, 1, 2, 3)
-            // Bottom Corner (Intersection 0/1)
             drawHitbox('topline', GRID_X - 10, GRID_Y + (CELL_H*3) - 15, 20, 30, "Top Line (0,00,1,2,3)");
-            
-            // Top Corner (Intersection 00/3) - NEW
-            // Placed at the top-left corner intersection
             drawHitbox('topline', GRID_X - 10, GRID_Y - 15, 20, 30, "Top Line (0,00,1,2,3)");
 
             drawOutsideBets();
@@ -833,23 +821,16 @@
         // --- LOGIC ---
 		function selectChip(val) {
             currentChipValue = val;
-            playSound('click'); // Click sound
-            
-            // Visual Update
+            playSound('click'); 
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             document.querySelector(`.chip-${val}`).classList.add('active');
-            
-            // Update Instructions
             const instr = document.querySelector('.instruction-text');
             if(instr) instr.innerHTML = `L-Click: Bet $${val} &bull; R-Click: Remove $${val}`;
         }
 
         function placeBet(id, amount = null) {
             if(isSpinning) return;
-            
-            // Use provided amount (for Patterns) or selected chip value (for manual clicks)
             const val = amount !== null ? amount : currentChipValue;
-
             const currentTotal = Object.values(bets).reduce((a,b)=>a+b,0);
             if (currentTotal + val > balance) return showMsg("Insufficient funds!", '#ff6b6b');
 
@@ -857,10 +838,7 @@
             bets[id] += val;
             updateUI();
             
-            // Sound trigger
             if(amount === null) playSound('click');
-
-            // Only show message if manual click (amount is null) to avoid spamming msg on patterns
             if(amount === null) showMsg(`Bet $${val} on ${id}`); 
             else showMsg("Bet Placed");
         }
@@ -870,89 +848,59 @@
             const m = document.getElementById('specialMenu');
             m.classList.toggle('active');
         }
+		
 		function placePattern(type) {
             if(isSpinning) return;
-            playSound('click'); // Single click for pattern placement
+            playSound('click'); 
             
             if(type === 'snake') {
-                // Red Snake: $10 each on specific red numbers
                 SNAKE_NUMS.forEach(n => placeBet(n.toString(), 10));
                 showMsg("Red Snake Placed ($120)");
             }
             else if(type === '007') {
-                // 007: High ($140), Six-Line 13-18 ($50), Split 0/00 ($10)
-                placeBet('high', 140);
-                placeBet('sixline_13', 50);
-                placeBet('split_0_00', 10);
+                placeBet('high', 140); placeBet('sixline_13', 50); placeBet('split_0_00', 10);
                 showMsg("007 Strategy Placed ($200)");
             }
             else if(type === 'romanosky') {
-                // Romanosky: Corners $10, Dozens $30 (Matches 1 unit / 3 units ratio)
-                placeBet('corner_2', 10);
-                placeBet('corner_7', 10);
-                placeBet('dozen2', 30);
-                placeBet('dozen3', 30);
+                placeBet('corner_2', 10); placeBet('corner_7', 10);
+                placeBet('dozen2', 30); placeBet('dozen3', 30);
                 showMsg("Romanosky Placed ($80)");
             }
             else if(type === 'shotwell_std') {
-                // Shotwell Std: Six-Line $10, Straights $10
                 placeBet('sixline_1', 10);
                 ['8', '10', '20', '26'].forEach(n => placeBet(n, 10));
                 showMsg("Shotwell Std Placed ($50)");
             }
             else if(type === 'shotwell_high') {
-                // Shotwell High: Six-Line $10, Straights $10
                 placeBet('sixline_31', 10);
                 ['0', '00', '29', '30'].forEach(n => placeBet(n, 10));
                 showMsg("Shotwell High Placed ($50)");
             }
             else if(type === 'double_st_quad') {
-                // Dbl St. Quad: Six-Lines $10, Corner $10, Straight $10
-                placeBet('sixline_13', 10);
-                placeBet('sixline_19', 10);
-                placeBet('corner_4', 10); 
-                placeBet('0', 10);
+                placeBet('sixline_13', 10); placeBet('sixline_19', 10);
+                placeBet('corner_4', 10); placeBet('0', 10);
                 showMsg("Double St. Quad Placed ($40)");
             }
             else if(type === 'five_quad') {
-                // Five Quad: Corners $10 each, Straight $10
-                placeBet('corner_5', 10);  
-                placeBet('corner_10', 10); 
-                placeBet('corner_17', 10); 
-                placeBet('corner_23', 10); 
-                placeBet('corner_32', 10); 
-                placeBet('00', 10);
+                placeBet('corner_5', 10); placeBet('corner_10', 10); placeBet('corner_17', 10); 
+                placeBet('corner_23', 10); placeBet('corner_32', 10); placeBet('00', 10);
                 showMsg("Five Quad Placed ($60)");
             }
             else if(type === '3_2_red') {
-                // 3/2 Red: Scaled to multiples of 10 (Ratio 3:2 -> $30 : $20)
-                placeBet('red', 30);
-                placeBet('c2', 20);
+                placeBet('red', 30); placeBet('c2', 20);
                 showMsg("3/2 Red Placed ($50)");
             }
             else if(type === 'kavouras') {
-                // Kavouras: All units scaled to $10
-                placeBet('topline', 10); // Originally Corner 0-3
-                placeBet('split_8_11', 10);
-                placeBet('split_13_14', 10);
-                placeBet('split_15_18', 10);
-                placeBet('split_17_20', 10);
-                placeBet('split_27_30', 10);
+                placeBet('topline', 10); placeBet('split_8_11', 10); placeBet('split_13_14', 10);
+                placeBet('split_15_18', 10); placeBet('split_17_20', 10); placeBet('split_27_30', 10);
                 placeBet('corner_32', 10);
                 showMsg("Kavouras Placed ($70)");
             }
             else if(type === '666') {
-                // 666 Strat: Scaled for $10 divisibility and break-even logic
-                // Red $90 (Wins $90, covers losses)
-                // Splits $10 (Pays $170, covers losses)
-                // Straights $10 (Pays $350, big win)
                 placeBet('red', 90);
-                
                 ['split_0_00', 'split_8_11', 'split_10_13', 'split_17_20', 'split_26_29', 'split_28_31']
                     .forEach(id => placeBet(id, 10));
-                
                 ['4', '6', '15'].forEach(n => placeBet(n, 10));
-                
                 showMsg("666 Strategy Placed ($180)");
             }
         }
@@ -960,8 +908,7 @@
         function removeBet(id) {
             if(isSpinning) return;
             if(bets[id] && bets[id] > 0) {
-                playSound('click'); // Click on removal
-                // Remove the currently selected chip value
+                playSound('click'); 
                 bets[id] -= currentChipValue;
                 if(bets[id] <= 0) delete bets[id];
                 updateUI();
@@ -1012,8 +959,6 @@
             // Draw chips
             for(const [id, amt] of Object.entries(bets)) {
                 if(amt <= 0) continue;
-                
-                // Safety check for complex keys not in zoneCenters
                 if(!zoneCenters[id]) continue; 
 
                 const c = zoneCenters[id];
@@ -1044,9 +989,7 @@
             const totalBet = Object.values(bets).reduce((a,b)=>a+b,0);
             if(totalBet === 0) return showMsg("Please place a bet!");
             
-            // --- Spin Audio Start ---
-            // Reset to 0 so it always starts fresh, and play
-            sounds.spin.currentTime = 0;
+            // Start Spin Audio
             playSound('spin');
             
             balance -= totalBet;
@@ -1081,9 +1024,8 @@
         function resolveBet(result) {
             isSpinning = false;
             
-            // --- Stop Spin Audio ---
-            sounds.spin.pause(); 
-            sounds.spin.currentTime = 0;
+            // Stop Spin Audio
+            stopSound('spin');
 
             // History
             history.unshift(result);
@@ -1107,52 +1049,35 @@
             for(const [id, amt] of Object.entries(bets)) {
                 let payout = 0;
                 
-                // Straight
                 if(id === result.toString()) payout = 35;
-                
-                // Split (check ID format split_X_Y)
                 else if(id.startsWith('split_')) {
                     const parts = id.split('_');
-                    // split_0_1, split_0_00, split_10_13
                     const n1 = parts[1];
                     const n2 = parts[2];
                     if(n1 === result.toString() || n2 === result.toString()) payout = 17;
                 }
-                
-                // Street (street_1 means 1,2,3)
                 else if(id.startsWith('street_')) {
                     const s = parseInt(id.split('_')[1]);
                     if(num >= s && num <= s+2 && num !== -1 && result !== 0) payout = 11;
                 }
-                
-                // Corner
                 else if(id.startsWith('corner_')) {
                     const s = parseInt(id.split('_')[1]);
                     const grp = [s, s+1, s+3, s+4];
                     if(grp.includes(num)) payout = 8;
                 }
-                
-                // Six Line
                 else if(id.startsWith('sixline_')) {
                     const s = parseInt(id.split('_')[1]);
                     if(num >= s && num <= s+5 && num !== -1 && result !== 0) payout = 5;
                 }
-                
-                // Trios / Basket
                 else if(id === 'trio_0_1_2') {
                     if([0, 1, 2].includes(num)) payout = 11;
                 }
                 else if(id === 'trio_00_2_3') {
                     if(result === '00' || num === 2 || num === 3) payout = 11;
                 }
-
-                // Top Line
                 else if(id === 'topline') {
-                    // 0, 00, 1, 2, 3
                     if(result === '00' || (num >= 0 && num <= 3)) payout = 6;
                 }
-                
-                // Outside
                 else if(result !== 0 && result !== '00') {
                     if(id === 'red' && REDS.includes(num)) payout = 1;
                     if(id === 'black' && !REDS.includes(num)) payout = 1;
@@ -1167,7 +1092,6 @@
                     if(id === 'c2' && num % 3 === 2) payout = 2;
                     if(id === 'c3' && num % 3 === 0) payout = 2;
                 }
-
                 if(payout > 0) totalWin += amt + (amt * payout);
             }
 
