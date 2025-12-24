@@ -230,12 +230,10 @@
         .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
         
-        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; font-size: clamp(8px, 2.5vw, 11px); max-width: 100%; word-break: break-word; min-width: 0;}
-        .btn-clear { background: #c0392b; color: white; font-size: clamp(8px, 2.5vw, 11px); word-break: break-word; min-width: 0;}
-        .btn-rebet { background: #3498db; color: white; font-size: clamp(8px, 2.5vw, 11px); word-break: break-word; min-width: 0;}
+        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; max-width: 100%; word-break: break-word; min-width: 0;}
+        .btn-clear { background: #c0392b; color: white; word-break: break-word; min-width: 0;}
+        .btn-rebet { background: #3498db; color: white; word-break: break-word; min-width: 0;}
 		.btn-special { background: #8e44ad; color: white;
-
-			font-size: clamp(8px, 2.5vw, 11px); 
 			
 			/* Text Wrapping Logic */
 			white-space: normal;      /* Allow text to wrap to a second line */
@@ -273,7 +271,6 @@
 		}
 
         .msg-display {
-			font-size: clamp(8px, 2.5vw, 11px); 
             min-height: 25px; margin-bottom: 10px; 
             color: var(--gold); font-size: 1.2rem; font-weight: bold;
             text-align: center; text-shadow: 0 2px 4px black;
