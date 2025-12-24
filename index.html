@@ -434,7 +434,7 @@
                 </div>
 
                 <div class="instruction-text">
-                    L-Click: Bet $10 &bull; R-Click: Remove $10
+                    L-Click/Tap: Bet $10 &bull; R-Click/Hold: Remove $10
                 </div>
             </div>
 
@@ -825,7 +825,7 @@
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             document.querySelector(`.chip-${val}`).classList.add('active');
             const instr = document.querySelector('.instruction-text');
-            if(instr) instr.innerHTML = `L-Click: Bet $${val} &bull; R-Click: Remove $${val}`;
+            if(instr) instr.innerHTML = `L-Click/Tap: Bet $${val} &bull; R-Click/Hold: Remove $${val}`;
         }
 
         function placeBet(id, amount = null) {
