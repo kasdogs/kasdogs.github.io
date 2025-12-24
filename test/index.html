@@ -479,46 +479,56 @@
         const SPIN_DURATION_MS = 6000; 
         const MAX_HISTORY = 15;
 
-// --- HYBRID AUDIO IMPLEMENTATION ---
+// --- AUDIO IMPLEMENTATION ---
         let isMuted = false;
+        let audioContext = null; // Use Web Audio API context for better mobile support
         
-        // 1. Web Audio API Context (For rapid-fire clicks)
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        let clickBuffer = null;
-
-        // Load the click sound into a memory buffer
-        fetch('click.mp3')
-            .then(response => response.arrayBuffer())
-            .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
-            .then(decodedAudio => {
-                clickBuffer = decodedAudio;
-            })
-            .catch(e => console.warn("Click sound failed to load:", e));
-
-        // 2. Standard HTML5 Audio (For longer, non-overlapping sounds)
-        const fxSounds = {
-            spin: new Audio('spin.mp3'),
-            win: new Audio('win.mp3'),
-            lose: new Audio('lose.mp3')
+        // Define sounds with their paths
+        const soundFiles = {
+            click: 'click.mp3',
+            spin: 'spin.mp3',
+            win: 'win.mp3',
+            lose: 'lose.mp3'
         };
 
-        // Configuration
-        fxSounds.spin.volume = 0.5;
-        fxSounds.win.volume = 0.6;
-        fxSounds.lose.volume = 0.5;
+        const sounds = {};
 
-        // --- MOBILE UNLOCK ---
-        // We must resume the AudioContext on the first user interaction
+        // Preload sounds
+        Object.keys(soundFiles).forEach(key => {
+            const audio = new Audio(soundFiles[key]);
+            // Mobile Safari requires audio to be loaded to play consistently
+            audio.preload = 'auto'; 
+            sounds[key] = audio;
+        });
+
+        // Configuration
+        sounds.click.volume = 0.4;
+        sounds.spin.volume = 0.5;
+        sounds.spin.loop = false;
+        sounds.win.volume = 0.6;
+        sounds.lose.volume = 0.5;
+
+        // --- MOBILE UNLOCK FUNCTION ---
+        // We must play a silent sound on the FIRST user interaction to unlock the audio engine
         function unlockAudio() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+            const unlocker = new Audio('click.mp3'); 
+            unlocker.volume = 0;
+            
+            // Try to play it instantly
+            const playPromise = unlocker.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // Audio unlocked! Remove the listeners
+                    document.removeEventListener('click', unlockAudio);
+                    document.removeEventListener('touchstart', unlockAudio);
+                }).catch(error => {
+                    console.log('Audio unlock failed (yet): ' + error);
+                });
             }
-            // Remove listeners once unlocked
-            document.removeEventListener('click', unlockAudio);
-            document.removeEventListener('touchstart', unlockAudio);
         }
 
+        // Add listeners to unlock audio on the very first touch/click anywhere
         document.addEventListener('click', unlockAudio);
         document.addEventListener('touchstart', unlockAudio);
 
@@ -529,12 +539,10 @@
             if(isMuted) {
                 btn.innerText = "MUTED";
                 btn.classList.add('muted');
-                // Stop any playing standard sounds
-                Object.values(fxSounds).forEach(s => {
+                Object.values(sounds).forEach(s => {
                     s.pause();
                     s.currentTime = 0;
                 });
-                // (Web Audio sounds stop automatically when they finish)
             } else {
                 btn.innerText = "Audio ON";
                 btn.classList.remove('muted');
@@ -543,36 +551,33 @@
 
         function playSound(name) {
             if(isMuted) return;
-
-            // STRATEGY 1: High-Performance Click (Web Audio API)
-            if (name === 'click') {
-                if (clickBuffer && audioCtx.state === 'running') {
-                    // Create a "source" node for this specific click instance
-                    const source = audioCtx.createBufferSource();
-                    source.buffer = clickBuffer;
-                    
-                    // Create a gain node to control volume
-                    const gainNode = audioCtx.createGain();
-                    gainNode.gain.value = 0.4; // Click volume
-                    
-                    // Connect: Source -> Gain -> Speakers
-                    source.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    // Play instantly ("fire and forget")
-                    source.start(0);
-                }
-                return;
-            }
-
-            // STRATEGY 2: Standard Audio (Spin/Win/Lose)
-            const s = fxSounds[name];
+            
+            const s = sounds[name];
             if(s) {
-                // Stop previous if playing (except spin which we might want to restart)
-                if(!s.paused) {
-                    s.currentTime = 0;
+                // Determine if the sound is currently playing
+                const isPlaying = s.currentTime > 0 && !s.paused && !s.ended && s.readyState > 2;
+
+                if (isPlaying) {
+                    // For 'click', we want rapid fire. Clone it to allow overlap.
+                    if (name === 'click') {
+                        const clone = s.cloneNode();
+                        clone.volume = s.volume;
+                        clone.play().catch(() => {});
+                        return;
+                    }
+                    // For spin, reset it
+                    if (name === 'spin') {
+                        s.currentTime = 0;
+                    }
+                } else {
+                     // Not playing? Reset and go.
+                     if(!s.loop) s.currentTime = 0;
                 }
-                s.play().catch(e => console.warn(`Audio '${name}' blocked.`, e));
+
+                s.play().catch(e => {
+                    // Suppress "The play() request was interrupted" errors common on mobile
+                    console.warn(`Audio '${name}' blocked.`, e);
+                });
             }
         }
 
