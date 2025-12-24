@@ -430,8 +430,6 @@
         const MAX_HISTORY = 15;
 
         // --- AUDIO IMPLEMENTATION ---
-		// Check localStorage; default to false (not muted) if nothing is saved
-		let isMuted = localStorage.getItem('rouletteMuteState') === 'true';
         let isMuted = false;
 
         // Ensure these files exist in the same directory, or the browser will show 404s
@@ -450,23 +448,19 @@
         sounds.lose.volume = 0.5;
 
         function toggleMute() {
-			isMuted = !isMuted;
-			
-			// Save to Local Storage
-			localStorage.setItem('rouletteMuteState', isMuted);
-
-			const btn = document.getElementById('btnMute');
-			
-			if(isMuted) {
-				btn.innerText = "MUTED";
-				btn.classList.add('muted');
-				// Immediately silence any playing audio
-				Object.values(sounds).forEach(s => s.pause());
-			} else {
-				btn.innerText = "Audio ON";
-				btn.classList.remove('muted');
-			}
-		}
+            isMuted = !isMuted;
+            const btn = document.getElementById('btnMute');
+            
+            if(isMuted) {
+                btn.innerText = "MUTED";
+                btn.classList.add('muted');
+                // Immediately silence any playing audio
+                Object.values(sounds).forEach(s => s.pause());
+            } else {
+                btn.innerText = "Audio ON";
+                btn.classList.remove('muted');
+            }
+        }
 
         function playSound(name) {
             if(isMuted) return;
@@ -495,20 +489,11 @@
 		
 
         window.onload = () => {
-			// Load High Score
-			document.getElementById('highScoreDisplay').innerText = highScore;
-			
-			// Load Mute State Visuals
-			if (isMuted) {
-				const btn = document.getElementById('btnMute');
-				btn.innerText = "MUTED";
-				btn.classList.add('muted');
-			}
-
-			drawWheel();
-			drawBoard();
-			document.getElementById('boardSvg').addEventListener('contextmenu', event => event.preventDefault());
-		};
+            document.getElementById('highScoreDisplay').innerText = highScore;
+            drawWheel();
+            drawBoard();
+            document.getElementById('boardSvg').addEventListener('contextmenu', event => event.preventDefault());
+        };
 
         // --- RENDER FUNCTIONS ---
         function drawWheel() {
