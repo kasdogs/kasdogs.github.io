@@ -230,31 +230,50 @@
         .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
         
-        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; font-size: 1.2rem; max-width: 100%; }
-        .btn-clear { background: #c0392b; color: white; }
-        .btn-rebet { background: #3498db; color: white; }
-        .btn-special { background: #8e44ad; color: white; width: auto;}
+        .btn-spin { background: var(--gold); color: #111; flex-grow: 2; font-size: clamp(8px, 2.5vw, 11px); max-width: 100%; word-break: break-word; min-width: 0;}
+        .btn-clear { background: #c0392b; color: white; font-size: clamp(8px, 2.5vw, 11px); word-break: break-word; min-width: 0;}
+        .btn-rebet { background: #3498db; color: white; font-size: clamp(8px, 2.5vw, 11px); word-break: break-word; min-width: 0;}
+		.btn-special { background: #8e44ad; color: white;
+
+			font-size: clamp(8px, 2.5vw, 11px); 
+			
+			/* Text Wrapping Logic */
+			white-space: normal;      /* Allow text to wrap to a second line */
+			word-break: break-word;   /* Force long words (like Romanosky) to break if needed */
+			line-height: 1.1;         /* Tighter line spacing for wrapped text */
+			text-align: center;
+			
+			/* Box Model & Positioning */
+			min-width: 0;             /* Allow flex item to shrink below content size */
+			
+			/* Flex alignment to center multi-line text vertically */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
         
-        .special-menu {
-            display: none;
-            gap: 8px; /* Slightly tighter gap for grid */
-            width: 100%;
-            background: #222;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #444;
-        }
-        
-        .special-menu.active { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); /* Forces 5 equal columns */
-			gap: 8px;
+		.special-menu {
+			display: none;
+			gap: 4px; 
 			width: 100%;
-			box-sizing: border-box; /* Prevents padding from causing overflow */
+			background: #222;
+			padding: 8px 4px; /* Reduced side padding */
+			border-radius: 8px;
+			margin-bottom: 10px;
+			border: 1px solid #444;
+			box-sizing: border-box; /* Crucial: includes padding in width calculation */
+		}
+
+		.special-menu.active { 
+			display: grid; 
+			/* Strictly enforce 5 columns */
+			grid-template-columns: repeat(5, 1fr); 
+			/* Make all rows equal height based on the tallest button */
+			grid-auto-rows: 1fr; 
 		}
 
         .msg-display {
+			font-size: clamp(8px, 2.5vw, 11px); 
             min-height: 25px; margin-bottom: 10px; 
             color: var(--gold); font-size: 1.2rem; font-weight: bold;
             text-align: center; text-shadow: 0 2px 4px black;
