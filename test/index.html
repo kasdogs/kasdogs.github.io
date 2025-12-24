@@ -254,20 +254,48 @@
         
 		.special-menu {
 			display: none;
-			gap: 4px; 
+			gap: 5px; 
 			width: 100%;
 			background: #222;
-			padding: 8px 4px; /* Reduced side padding */
+			padding: 6px; 
 			border-radius: 8px;
 			margin-bottom: 10px;
 			border: 1px solid #444;
-			box-sizing: border-box; /* Crucial: includes padding in width calculation */
+			box-sizing: border-box; 
 		}
-
+		
 		.special-menu.active { 
 			display: grid; 
 			grid-template-columns: repeat(5, 1fr); 
 			grid-auto-rows: 1fr; 
+		}
+		
+		.special-menu .btn {
+			/* SIZE: Smaller font clamp (8px to 11px) */
+			font-size: clamp(8px, 2vw, 12px) !important;
+			
+			/* HEIGHT: Reduced from 40px to 32px for a compact look */
+			min-height: 32px;
+			height: 100%;
+			
+			/* SPACING: Tighter padding */
+			padding: 10px;
+			
+			/* TEXT LAYOUT: Tighter lines, forced wrapping */
+			line-height: 1.0;
+			white-space: normal;
+			word-break: break-word;
+			text-align: center;
+			
+			/* POSITIONING */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			
+			/* VISUALS: Flat look to reduce visual noise */
+			box-shadow: none;
+			border: 1px solid rgba(255,255,255,0.15);
+			min-width: 0;
 		}
 
         .msg-display {
@@ -416,7 +444,7 @@
                     <button class="btn btn-clear" onclick="clearBets()" id="btnClear">Clear</button>
                     <button class="btn btn-rebet" onclick="rebet()" id="btnRebet">Rebet</button>
                     <button class="btn btn-rebet" onclick="doubleBet()" id="btnDouble">x2</button>
-                    <button class="btn btn-special" onclick="toggleSpecial()" id="btnSpecial">Pro Bets</button>
+                    <button class="btn btn-special" onclick="toggleSpecial()" id="btnSpecial">Easy Bets</button>
                 </div>
                 <div class="controls-row">
                     <button class="btn btn-spin" onclick="spin()" id="spinBtn">SPIN</button>
