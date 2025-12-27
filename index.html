@@ -426,15 +426,15 @@
                 font-size: 0.75rem; /* Slightly smaller text */
             }
             
-            /* 6. Special Menu Grid Fix (Critical for width) */
-            /* Changes from 5 columns to 2 columns on mobile so it fits */
             .special-menu.active {
                 grid-template-columns: repeat(2, 1fr) !important;
             }
 
-            /* 7. Chip Bar Tweak */
             .chip-bar {
                 gap: 8px; /* Tighter chip spacing */
+				
+			.mute-btn {
+                top: 30px;
             }
         }
     </style>
@@ -1038,13 +1038,23 @@
             }
         }
 		
-        function removeBet(id) {
+		function removeBet(id) {
             if(isSpinning) return;
             if(bets[id] && bets[id] > 0) {
-                clearWinnerHighlight(); // Clear highlight
                 playSound('click'); 
-                bets[id] -= currentChipValue;
-                if(bets[id] <= 0) delete bets[id];
+
+                // Check for Mobile (matches CSS breakpoint)
+                const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+                if (isMobile) {
+                    // Mobile: Remove the FULL bet on this zone immediately
+                    delete bets[id];
+                } else {
+                    // Desktop: Decrement by current chip value
+                    bets[id] -= currentChipValue;
+                    if(bets[id] <= 0) delete bets[id];
+                }
+                
                 updateUI();
             }
         }
