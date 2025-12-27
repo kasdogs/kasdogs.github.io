@@ -399,28 +399,56 @@
                 display: none;
             }
 			
-		body {
+		/* 1. Global Safety */
+            body {
                 padding: 5px;
+                overflow-x: hidden; /* Prevent horizontal scrollbar */
+            }
+            
+            .main-container {
+                gap: 20px;
+                width: 100%;
             }
 
-            /* Tighten the stats bar */
+            /* 2. Stats Bar Fitting */
             .stats-row {
-                padding: 8px 10px; /* Reduced from 30px */
-                gap: 10px;         /* Reduced from 20px */
-                width: 100%;       /* Ensure it fits container */
+                padding: 8px 10px;
+                gap: 10px;
+                width: 100%;
                 box-sizing: border-box;
                 justify-content: space-between;
             }
-            
-            /* Slightly smaller text for stats */
-            .stat-box {
-                font-size: 0.9rem;
+            .stat-box { font-size: 0.85rem; }
+
+            /* 3. Board Section Fluidity */
+            .board-section {
+                min-width: 0; /* Remove rigid min-width */
+                width: 100%;
+            }
+
+            /* 4. Controls Area Fitting */
+            .controls {
+                width: 100%;
+                box-sizing: border-box; /* Include padding in width calculation */
+                padding: 10px; /* Reduce padding from 20px */
+            }
+
+            /* 5. Button Resizing */
+            .btn {
+                min-width: 60px; /* Allow buttons to shrink smaller than 90px */
+                padding: 10px 5px; /* Reduce internal padding */
+                font-size: 0.75rem; /* Slightly smaller text */
             }
             
-            /* Ensure the wheel doesn't overflow */
-            .main-container {
-                gap: 20px; /* Reduce vertical gap between wheel and board */
-                overflow-x: hidden; /* Prevent horizontal scroll */
+            /* 6. Special Menu Grid Fix (Critical for width) */
+            /* Changes from 5 columns to 2 columns on mobile so it fits */
+            .special-menu.active {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            /* 7. Chip Bar Tweak */
+            .chip-bar {
+                gap: 8px; /* Tighter chip spacing */
             }
         }
     </style>
