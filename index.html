@@ -60,7 +60,7 @@
         }
 
         /* --- HEADER --- */
-        header {
+		header {
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -68,6 +68,13 @@
             width: 100%;
             max-width: 800px;
             margin-bottom: 15px;
+            /* Sticky Positioning */
+            position: sticky;
+            top: 0;
+            z-index: 500;
+            background-color: rgba(0,0,0,0); /* Prevents transparency issues */
+            padding-top: 10px;
+            padding-bottom: 10px;
         }
 
         .stats-row {
@@ -76,6 +83,7 @@
             background: #222;
             padding: 8px 30px;
             border-radius: 50px;
+			border: 1px solid #333;
             align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
@@ -111,12 +119,18 @@
 		.mute-btn.muted svg { fill: #c0392b; } 
 		
         .history-bar {
-            display: flex;
-            gap: 3px;
-            height: 24px;
+			display: flex;
+            gap: 5px;
+            height: auto; 
             align-items: center;
-            opacity: 0.8;
-            margin-top: 5px;
+            opacity: 1;
+            margin-top: 0px;
+            background: #222;
+            padding: 4px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+			text-shadow: 0px 1px 4px rgba(0,0,0,1);
         }
         .history-dot {
             width: 18px; height: 18px;
@@ -124,13 +138,14 @@
             display: flex; justify-content: center; align-items: center;
             font-size: 9px; font-weight: bold;
             border: 1px solid #444;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
             cursor: default;
+			text-shadow: 0px 1px 4px rgba(0,0,0,1);
+			box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
         }
         .dot-red { background: var(--red); color: white; }
         .dot-black { background: var(--black); color: white; }
         .dot-green { background: var(--felt); color: var(--gold); border: 1px solid var(--gold); }
-        .history-label { font-size: 0.7rem; color: #555; margin-right: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .history-label { font-size: 0.7rem; color: #777; margin-right: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
         /* --- WHEEL SVG --- */
         .wheel-svg-container {
@@ -320,8 +335,22 @@
 			box-sizing: border-box;
             margin-top: -5%;
             margin-bottom: 20px;
-            flex-wrap: wrap; /* Allow wrapping on very small screens */
+            flex-wrap: wrap; 
         }
+		.chip-msg {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0px 1px 2px black;
+            pointer-events: none; /* Allows clicking through text if needed */
+            white-space: nowrap;
+        }
+
+        #hoverMsgLeft { right: 22px; margin-top: 9px}
+        #hoverMsgRight { right: 22px; margin-top: 24px }
 
         .chip {
             width: clamp(32px, 9vw, 40px);
@@ -393,7 +422,8 @@
 
         <div class="board-section">
             
-            <div class="table-container" style="margin-bottom: 0;"> <svg id="boardSvg" class="board-svg" viewBox="0 0 920 350">
+            <div class="table-container" style="margin-bottom: 0;"> 
+                <svg id="boardSvg" class="board-svg" viewBox="0 0 920 350">
                     <rect x="0" y="0" width="920" height="350" fill="#1e5a30" rx="15" ry="15" oncontextmenu="return false;" />
                     
                     <g transform="translate(26, 0)">
@@ -401,17 +431,21 @@
                         <g id="hitboxLayer"></g>
                         <g id="textLayer"></g>
                         <g id="chipLayer" style="pointer-events: none;"></g>
+                        
+
                     </g>
                 </svg>
             </div>
 
             <div class="chip-bar">
-                <div class="chip chip-10 active" onclick="selectChip(10)">10</div>
-                <div class="chip chip-20" onclick="selectChip(20)">20</div>
-                <div class="chip chip-50" onclick="selectChip(50)">50</div>
-                <div class="chip chip-100" onclick="selectChip(100)">100</div>
-                <div class="chip chip-200" onclick="selectChip(200)">200</div>
-                <div class="chip chip-500" onclick="selectChip(500)">500</div>
+                <span id="hoverMsgLeft" class="chip-msg"></span>
+                <span id="hoverMsgRight" class="chip-msg"></span>
+					<div class="chip chip-10 active" onclick="selectChip(10)">10</div>
+					<div class="chip chip-20" onclick="selectChip(20)">20</div>
+					<div class="chip chip-50" onclick="selectChip(50)">50</div>
+					<div class="chip chip-100" onclick="selectChip(100)">100</div>
+					<div class="chip chip-200" onclick="selectChip(200)">200</div>
+					<div class="chip chip-500" onclick="selectChip(500)">500</div>
             </div>
 
             <div class="controls">
@@ -627,7 +661,7 @@
             });
         }
 
-        function drawRect(id, x, y, w, h, color, labelText, rotate = false) {
+		function drawRect(id, x, y, w, h, color, labelText, rotate = false) {
             const grid = document.getElementById('gridLayer');
             const textL = document.getElementById('textLayer');
             const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -635,8 +669,13 @@
             rect.setAttribute("x", x); rect.setAttribute("y", y);
             rect.setAttribute("width", w); rect.setAttribute("height", h);
             rect.setAttribute("class", `zone ${color}`);
-            rect.onclick = () => placeBet(id);
-            rect.oncontextmenu = (e) => { e.preventDefault(); removeBet(id); };
+            
+            // Interaction & Hover
+            rect.addEventListener('click', () => placeBet(id));
+            rect.addEventListener('contextmenu', (e) => { e.preventDefault(); removeBet(id); });
+            rect.addEventListener('mouseenter', () => showHoverInfo(id));
+            rect.addEventListener('mouseleave', () => clearHoverInfo());
+
             grid.appendChild(rect);
 
             if (labelText) {
@@ -656,11 +695,17 @@
             rect.setAttribute("x", x); rect.setAttribute("y", y);
             rect.setAttribute("width", w); rect.setAttribute("height", h);
             rect.setAttribute("class", "hitbox");
+            
             const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
             title.textContent = label;
             rect.appendChild(title);
-            rect.onclick = () => placeBet(id);
-            rect.oncontextmenu = (e) => { e.preventDefault(); removeBet(id); };
+            
+            // Interaction & Hover
+            rect.addEventListener('click', () => placeBet(id));
+            rect.addEventListener('contextmenu', (e) => { e.preventDefault(); removeBet(id); });
+            rect.addEventListener('mouseenter', () => showHoverInfo(id));
+            rect.addEventListener('mouseleave', () => clearHoverInfo());
+
             layer.appendChild(rect);
             zoneCenters[id] = { x: x + w/2, y: y + h/2 };
         }
@@ -753,7 +798,12 @@
             p00.setAttribute("id", "zone_00");
             p00.setAttribute("d", `M 20 ${GRID_Y} L ${GRID_X} ${GRID_Y} L ${GRID_X} ${GRID_Y + zeroH} L 20 ${GRID_Y + zeroH} L 0 ${GRID_Y + zeroH/2} Z`);
             p00.setAttribute("class", "zone zone-green");
-            p00.onclick = () => placeBet('00');
+            
+            // Interaction & Hover
+            p00.addEventListener('click', () => placeBet('00'));
+            p00.addEventListener('mouseenter', () => showHoverInfo('00'));
+            p00.addEventListener('mouseleave', () => clearHoverInfo());
+
             document.getElementById('gridLayer').appendChild(p00);
             
             const t00 = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -768,7 +818,12 @@
             p0.setAttribute("id", "zone_0");
             p0.setAttribute("d", `M 20 ${y0} L ${GRID_X} ${y0} L ${GRID_X} ${y0 + zeroH} L 20 ${y0 + zeroH} L 0 ${y0 + zeroH/2} Z`);
             p0.setAttribute("class", "zone zone-green");
-            p0.onclick = () => placeBet('0');
+            
+            // Interaction & Hover
+            p0.addEventListener('click', () => placeBet('0'));
+            p0.addEventListener('mouseenter', () => showHoverInfo('0'));
+            p0.addEventListener('mouseleave', () => clearHoverInfo());
+
             document.getElementById('gridLayer').appendChild(p0);
 
             const t0 = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -820,12 +875,26 @@
         function placeBet(id, amount = null) {
             if(isSpinning) return;
             
-            // Remove previous round highlight immediately
             clearWinnerHighlight();
 
-            const val = amount !== null ? amount : currentChipValue;
+            let val = amount !== null ? amount : currentChipValue;
             const currentTotal = Object.values(bets).reduce((a,b)=>a+b,0);
-            if (currentTotal + val > balance) return showMsg("Insufficient funds!", '#ff6b6b');
+            
+            // ALL-IN LOGIC
+            if (currentTotal + val > balance) {
+                // If manual click (amount is null), try to bet remainder
+                if (amount === null) {
+                    const remaining = balance - currentTotal;
+                    if (remaining > 0) {
+                        val = remaining;
+                    } else {
+                        return showMsg("Insufficient funds!", '#ff6b6b');
+                    }
+                } else {
+                    // If pattern bet, strict check
+                    return showMsg("Insufficient funds!", '#ff6b6b');
+                }
+            }
 
             if(!bets[id]) bets[id]=0;
             bets[id] += val;
@@ -833,13 +902,13 @@
             
             if(amount === null) {
                 playSound('click');
-                // CLEAN UP MESSAGE LABEL
+                // Format Label
                 let label = "Bet";
                 if(id.startsWith('split')) label = "Split Bet";
                 else if(id.startsWith('corner')) label = "Corner Bet";
                 else if(id.startsWith('street')) label = "Street Bet";
                 else if(id.startsWith('sixline')) label = "Six Line Bet";
-                else if(id.startsWith('trio') || id === 'topline') label = "Top Line Bet";
+                else if(id.startsWith('trio') || id === 'topline') label = "Line Bet";
                 else if(id.startsWith('dozen')) label = "Dozen Bet";
 				else if(id.startsWith('c')) label = "Column Bet";
                 else if(id.startsWith('red')) label = "Red Bet";
@@ -848,7 +917,7 @@
 				else if(id.startsWith('odd')) label = "Odd Bet";
 				else if(id.startsWith('low')) label = "Low Bet";
 				else if(id.startsWith('high')) label = "High Bet";
-                else if(!isNaN(id) || id === '00') label = `Straight Bet on ${id}`;
+                else if(!isNaN(id) || id === '00') label = `Straight ${id}`;
                 
                 showMsg(`Placed $${val} ${label}`); 
             } else {
@@ -1038,7 +1107,50 @@
                 resolveBet(resultVal);
             }, SPIN_DURATION_MS);
         }
+		// --- HOVER & PAYOUT LOGIC ---
+        function getPayoutRatio(id) {
+            if (id.startsWith('split_')) return 17;
+            if (id.startsWith('street_') || id.startsWith('trio_')) return 11;
+            if (id.startsWith('corner_')) return 8;
+            if (id === 'topline') return 6;
+            if (id.startsWith('sixline_')) return 5;
+            if (id.startsWith('dozen') || id.startsWith('c')) return 2;
+            if (['even','odd','red','black','low','high'].includes(id)) return 1;
+            if (!isNaN(id) || id === '00') return 35; // Straights (0-36, 00)
+            return 0;
+        }
 
+        function showHoverInfo(id) {
+            if(isSpinning) return;
+            const ratio = getPayoutRatio(id);
+            if(ratio === 0) return;
+
+            // Calculate Effective Bet (All-In Logic)
+            const currentTotal = Object.values(bets).reduce((a,b)=>a+b,0);
+            let effectiveBet = currentChipValue;
+            
+            // If user has less than chip value left, calc based on remaining balance
+            if (currentTotal + effectiveBet > balance) {
+                const remaining = balance - currentTotal;
+                if (remaining > 0) effectiveBet = remaining;
+                else effectiveBet = 0;
+            }
+
+            const potentialWin = effectiveBet * ratio;
+
+            const leftEl = document.getElementById('hoverMsgLeft');
+            const rightEl = document.getElementById('hoverMsgRight');
+            
+            if(leftEl) leftEl.textContent = `Pays ${ratio}:1`;
+            if(rightEl) rightEl.textContent = `Max Payout: $${potentialWin}`;
+        }
+
+        function clearHoverInfo() {
+            const leftEl = document.getElementById('hoverMsgLeft');
+            const rightEl = document.getElementById('hoverMsgRight');
+            if(leftEl) leftEl.textContent = '';
+            if(rightEl) rightEl.textContent = '';
+        }
         function resolveBet(result) {
             isSpinning = false;
             
