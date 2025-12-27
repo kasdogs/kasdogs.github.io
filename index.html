@@ -399,7 +399,6 @@
                 display: none;
             }
 			
-		/* 1. Global Safety */
             body {
                 padding: 5px;
                 overflow-x: hidden; /* Prevent horizontal scrollbar */
@@ -410,30 +409,17 @@
                 width: 100%;
             }
 
-            /* 2. Stats Bar Fitting */
-            .stats-row {
-                padding: 8px 10px;
-                gap: 10px;
-                width: 100%;
-                box-sizing: border-box;
-                justify-content: space-between;
-            }
-            .stat-box { font-size: 0.85rem; }
-
-            /* 3. Board Section Fluidity */
             .board-section {
                 min-width: 0; /* Remove rigid min-width */
                 width: 100%;
             }
 
-            /* 4. Controls Area Fitting */
             .controls {
                 width: 100%;
                 box-sizing: border-box; /* Include padding in width calculation */
                 padding: 10px; /* Reduce padding from 20px */
             }
 
-            /* 5. Button Resizing */
             .btn {
                 min-width: 60px; /* Allow buttons to shrink smaller than 90px */
                 padding: 10px 5px; /* Reduce internal padding */
