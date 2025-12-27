@@ -64,6 +64,9 @@
 
         /* --- HEADER --- */
 		header {
+            position: sticky;
+            top: 0;
+            z-index: 500;
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -71,13 +74,15 @@
             width: 100%;
             max-width: 800px;
             margin-bottom: 15px;
-            /* Sticky Positioning */
-            position: sticky;
-            top: 0;
-            z-index: 500;
-            background-color: rgba(0,0,0,0); /* Prevents transparency issues */
-            padding-top: 10px;
-            padding-bottom: 10px;
+            background-color: rgba(0,0,0,0);
+            padding: 10px 0;
+        }
+		
+		.header-bottom {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: static; 
         }
 
         .stats-row {
@@ -117,7 +122,7 @@
 
 		.mute-btn:hover { background: #444; border-color: #888; }
 		.mute-btn.muted { background: rgba(192, 57, 43, 0.2); border-color: #c0392b; }
-		.mute-btn svg { width: 18px; height: 18px; fill: #ccc; pointer-events: none; }
+		.mute-btn svg { width: 16px; height: 16px; fill: #ccc; pointer-events: none; }
 		.mute-btn:hover svg { fill: white; }
 		.mute-btn.muted svg { fill: #c0392b; } 
 		
@@ -433,6 +438,39 @@
             .chip-bar {
                 gap: 8px;
             }
+			
+			.header-bottom {
+                display: flex;
+                flex-direction: row;
+                align-items: stretch; /* CRITICAL: Forces equal height */
+                justify-content: center;
+                gap: 8px; /* Space between bar and button */
+                margin-top: 5px;
+                padding: 0 10px;
+            }
+
+            /* 2. Adapt Mute Button */
+            .mute-btn {
+                position: static; /* Remove absolute positioning */
+                top: auto; 
+                right: auto;
+                
+                /* Reset dimensions to adapt to flex stretch */
+                width: 20px; 
+                height: auto;
+                aspect-ratio: 1 / 1; /* Keep it square */
+                
+                /* Styling tweaks for mobile integration */
+                border-radius: 12px; /* Soft square matches the bar's roundness better */
+                box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                margin: 0; /* Remove any default margins */
+            }
+
+            /* 3. Ensure History Bar fits */
+            .history-bar {
+                margin-top: 0;
+                flex: 0 1 auto; /* Allow shrinking if screen is very small */
+            }
         }
     </style>
 </head>
@@ -445,8 +483,11 @@
             <div class="stat-box">Bet: $<span id="betDisplay">0</span></div>
             <div class="stat-box high-score">Best: $<span id="highScoreDisplay">500</span></div>
         </div>
-        <div class="history-bar" id="historyContainer">
-            <span class="history-label">History</span>
+        
+        <div class="header-bottom">
+            <div class="history-bar" id="historyContainer">
+                <span class="history-label">History</span>
+            </div>
         </div>
     </header>
 
