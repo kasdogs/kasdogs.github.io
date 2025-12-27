@@ -577,7 +577,7 @@
                     <button class="btn btn-special btn-sm" onclick="placePattern('666')">666 Strat</button>
                     <button class="btn btn-special btn-sm" onclick="placePattern('kavouras')">Kavouras</button>
                     <button class="btn btn-special btn-sm" onclick="placePattern('5x5')">5x5 Strat</button>
-                    <button class="btn btn-special btn-sm" onclick="placePattern('triple_cols')">3x Columns</button>
+                    <button class="btn btn-special btn-sm" onclick="placePattern('20_number')">20 Number</button>
                 </div>
 
                 <div class="controls-row">
@@ -645,6 +645,7 @@
                 }
             }
         }
+
         loadAllSounds();
 
         function unlockAudio() {
@@ -724,6 +725,26 @@
         window.onload = () => {
             // Restore Mute State
             const savedMute = localStorage.getItem('rouletteMuted');
+			// --- GAME OVER INPUTS ---
+			const gameOverModal = document.getElementById('gameOverModal');
+
+			// 1. Restart on clicking the dark overlay (outside the box)
+			gameOverModal.addEventListener('click', (e) => {
+				if (e.target === gameOverModal) {
+					restartGame();
+				}
+			});
+
+			// 2. Restart on Enter or Space key
+			document.addEventListener('keydown', (e) => {
+				// Check if the modal is currently visible
+				if (gameOverModal.style.display === 'flex') {
+					if (e.code === 'Enter' || e.code === 'Space') {
+						e.preventDefault(); // Prevent scrolling with Space
+						restartGame();
+					}
+				}
+			});
             if (savedMute === 'true') isMuted = true;
             updateMuteUI();
 
@@ -926,10 +947,10 @@
 
             // Top Line (0,00,1,2,3)
             // Bottom Corner (0-1 intersection extended)
-            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
+            drawHitbox('topline_1', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
             
             // Top Corner (00-3 intersection extended)
-            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
+            drawHitbox('topline_2', GRID_X - (HIT_SIZE / 2), GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
 
             drawOutsideBets();
         }
@@ -1063,7 +1084,7 @@
 				else if(id.startsWith('odd')) label = "Odd Bet";
 				else if(id.startsWith('low')) label = "Low Bet";
 				else if(id.startsWith('high')) label = "High Bet";
-                else if(!isNaN(id) || id === '00') label = `Straight ${id}`;
+                else if(!isNaN(id) || id === '00') label = `Straight Bet`;
                 
                 showMsg(`Placed $${val} ${label}`); 
             } else {
@@ -1099,10 +1120,10 @@
                 ['8', '10', '20', '26'].forEach(n => placeBet(n, 10));
                 showMsg("Shotwell Bet Placed");
             }
-			else if(type === 'triple_cols') {
+			else if(type === '20_number') {
                 placeBet('sixline_4', 50); placeBet('sixline_16', 50); placeBet('sixline_28', 50);
                 placeBet('split_0_00', 10);
-                showMsg("Triple Columns Bet Placed");
+                showMsg("20 Number Bet Placed");
             }
             else if(type === '5x5') {
                 placeBet('sixline_1', 10); placeBet('sixline_7', 10); placeBet('sixline_13', 10); placeBet('sixline_19', 10); placeBet('sixline_25', 10);
@@ -1366,7 +1387,7 @@
             else if(id.startsWith('odd')) label = "Odd Bet";
             else if(id.startsWith('low')) label = "Low Bet";
             else if(id.startsWith('high')) label = "High Bet";
-            else if(!isNaN(id) || id === '00') label = `Straight ${id}`;
+            else if(!isNaN(id) || id === '00') label = `Straight Bet`;
 
             // Update UI
             const typeEl = document.getElementById('hoverMsgType');
