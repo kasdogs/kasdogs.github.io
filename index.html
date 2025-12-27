@@ -360,7 +360,7 @@
 			position: relative;
 			z-index: 5;
 			box-sizing: border-box;
-            margin-top: -5%;
+            margin-top: -7%;
             margin-bottom: 20px;
             flex-wrap: wrap; 
         }
@@ -376,13 +376,18 @@
             white-space: nowrap;
 			
         }
-
+		#hoverMsgType { 
+            right: 22px; 
+            margin-top: -6px; /* Positions it 15px above the "Pays" line */
+            color: var(--gold); /* Optional: Gold color to distinguish the header */
+            font-weight: bold;
+        }
         #hoverMsgLeft { right: 22px; margin-top: 9px}
         #hoverMsgRight { right: 22px; margin-top: 24px }
 
         .chip {
-            width: clamp(32px, 9vw, 56px);
-			height: clamp(32px, 9vw, 56px);
+            width: clamp(32px, 9vw, 64px);
+			height: clamp(32px, 9vw, 64px);
             border-radius: 50%;
             border: 5px dashed white;
             display: flex; justify-content: center; align-items: center;
@@ -548,6 +553,7 @@
             </div>
 
             <div class="chip-bar">
+                <span id="hoverMsgType" class="chip-msg"></span>
                 <span id="hoverMsgLeft" class="chip-msg"></span>
                 <span id="hoverMsgRight" class="chip-msg"></span>
 					<div class="chip chip-10 active" onclick="selectChip(10)">10</div>
@@ -1336,7 +1342,6 @@
             const currentTotal = Object.values(bets).reduce((a,b)=>a+b,0);
             let effectiveBet = currentChipValue;
             
-            // If user has less than chip value left, calc based on remaining balance
             if (currentTotal + effectiveBet > balance) {
                 const remaining = balance - currentTotal;
                 if (remaining > 0) effectiveBet = remaining;
@@ -1345,16 +1350,39 @@
 
             const potentialWin = effectiveBet * ratio;
 
+            // Determine Bet Type Label
+            let label = "Bet";
+            if(id.startsWith('split')) label = "Split Bet";
+            else if(id.startsWith('corner')) label = "Corner Bet";
+            else if(id.startsWith('street')) label = "Street Bet";
+            else if(id.startsWith('sixline')) label = "Six Line Bet";
+            else if(id === 'topline') label = "Top Line Bet";
+            else if(id.startsWith('trio')) label = "Basket Bet";
+            else if(id.startsWith('dozen')) label = "Dozen Bet";
+            else if(id.startsWith('c')) label = "Column Bet";
+            else if(id.startsWith('red')) label = "Red Bet";
+            else if(id.startsWith('black')) label = "Black Bet";
+            else if(id.startsWith('even')) label = "Even Bet";
+            else if(id.startsWith('odd')) label = "Odd Bet";
+            else if(id.startsWith('low')) label = "Low Bet";
+            else if(id.startsWith('high')) label = "High Bet";
+            else if(!isNaN(id) || id === '00') label = `Straight ${id}`;
+
+            // Update UI
+            const typeEl = document.getElementById('hoverMsgType');
             const leftEl = document.getElementById('hoverMsgLeft');
             const rightEl = document.getElementById('hoverMsgRight');
             
+            if(typeEl) typeEl.textContent = label;
             if(leftEl) leftEl.textContent = `Pays ${ratio}:1`;
             if(rightEl) rightEl.textContent = `Max Payout: $${potentialWin}`;
         }
 
         function clearHoverInfo() {
+            const typeEl = document.getElementById('hoverMsgType');
             const leftEl = document.getElementById('hoverMsgLeft');
             const rightEl = document.getElementById('hoverMsgRight');
+            if(typeEl) typeEl.textContent = '';
             if(leftEl) leftEl.textContent = '';
             if(rightEl) rightEl.textContent = '';
         }
