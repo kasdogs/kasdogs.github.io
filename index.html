@@ -44,7 +44,10 @@
         }
 
         .wheel-section {
-            flex: 0 0 350px;
+            /* Changed from fixed 350px to fluid */
+            flex: 0 1 auto; 
+            width: 100%;
+            max-width: 380px; /* Cap at original size */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -149,12 +152,13 @@
 
         /* --- WHEEL SVG --- */
         .wheel-svg-container {
-            width: 380px;
-            height: 380px;
+            width: 100%; /* Fluid width */
+            height: auto; /* Auto height */
+            aspect-ratio: 1 / 1; /* Keep it square */
+            max-width: 380px;
             position: relative;
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
         }
-        
         #wheelGroup {
             transition: transform 8s cubic-bezier(0.1, 0.8, 0.1, 1);
             transform-origin: center;
@@ -347,6 +351,7 @@
             text-shadow: 0px 1px 2px black;
             pointer-events: none; /* Allows clicking through text if needed */
             white-space: nowrap;
+			
         }
 
         #hoverMsgLeft { right: 22px; margin-top: 9px}
@@ -387,11 +392,35 @@
 
 		@media (max-width: 768px) {
             .chip-msg {
+                display: none !important;
+			}
+			
+			.history-dot:nth-of-type(n+9) {
                 display: none;
             }
+			
+		body {
+                padding: 5px;
+            }
+
+            /* Tighten the stats bar */
+            .stats-row {
+                padding: 8px 10px; /* Reduced from 30px */
+                gap: 10px;         /* Reduced from 20px */
+                width: 100%;       /* Ensure it fits container */
+                box-sizing: border-box;
+                justify-content: space-between;
+            }
             
-            .history-dot:nth-of-type(n+9) {
-                display: none;
+            /* Slightly smaller text for stats */
+            .stat-box {
+                font-size: 0.9rem;
+            }
+            
+            /* Ensure the wheel doesn't overflow */
+            .main-container {
+                gap: 20px; /* Reduce vertical gap between wheel and board */
+                overflow-x: hidden; /* Prevent horizontal scroll */
             }
         }
     </style>
