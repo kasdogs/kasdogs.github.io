@@ -85,7 +85,7 @@
             justify-content: center;
             align-items: center; 
             position: static; 
-            margin-top: 5px;
+            margin-top: 0px;
             min-height: 32px; 
         }
 
@@ -114,8 +114,8 @@
 			height: 32px;
 			border-radius: 8px;
 			padding: 0;
-			background: #333;
-			border: 1px solid #555;
+			background: #222;
+			border: 1px solid #333;
 			cursor: pointer;
 			box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 			transition: all 0.2s;
@@ -124,9 +124,9 @@
 			align-items: center;
 		}
 
-		.mute-btn:hover { background: #444; border-color: #888; }
+		.mute-btn:hover { background: #333; border-color: #555; }
 		.mute-btn.muted { background: rgba(192, 57, 43, 0.2); border-color: #c0392b; }
-		.mute-btn svg { width: 16px; height: 16px; fill: #ccc; pointer-events: none; }
+		.mute-btn svg { width: 16px; height: 16px; fill: #aaa; pointer-events: none; }
 		.mute-btn:hover svg { fill: white; }
 		.mute-btn.muted svg { fill: #c0392b; } 
 		
@@ -159,7 +159,7 @@
         .dot-red { background: var(--red); color: white; }
         .dot-black { background: var(--black); color: white; }
         .dot-green { background: var(--felt); color: var(--gold); border: 1px solid var(--gold); }
-        .history-label { font-size: 0.7rem; color: #777; margin-right: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .history-label { font-size: 0.7rem; color: #ccc; margin-right: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
         /* --- WHEEL SVG --- */
         .wheel-svg-container {
@@ -389,7 +389,7 @@
         
         .chip.active { 
             border-style: solid; 
-            box-shadow: 0 0 15px var(--gold), inset 0 0 10px rgba(0,0,0,0.5); 
+            box-shadow: 0 0 10px var(--gold), inset 0 0 10px rgba(0,0,0,0.5); 
             transform: scale(1.15);
             z-index: 10;
         }
@@ -399,7 +399,7 @@
         .chip-50 { background: #e67e22; border-color: white; }
         .chip-100 { background: #23303b; border-color: white; }
         .chip-200 { background: #9b59b6; border-color: white; }
-        .chip-500 { background: #f1c40f; border-color: black; color: black !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+        .chip-500 { background: #3498db; border-color: white; }
 
 		@media (max-width: 760px) {
             .chip-msg {
@@ -452,7 +452,7 @@
                 justify-content: center;
                 gap: 10px; 
                 padding: 0 10px;
-                margin-top: 5px; /* Reduced margin for tighter mobile look */
+                margin-top: 0px; /* Reduced margin for tighter mobile look */
                 position: relative;
             }
 
@@ -884,7 +884,7 @@
             drawOutsideBets();
         }
 
-        function draw00And0(zeroH) {
+function draw00And0(zeroH) {
             // 00 (Top Half)
             const p00 = document.createElementNS("http://www.w3.org/2000/svg", "path");
             p00.setAttribute("id", "zone_00");
@@ -893,6 +893,8 @@
             
             // Interaction & Hover
             p00.addEventListener('click', () => placeBet('00'));
+            // ADDED: Right-click listener for 00
+            p00.addEventListener('contextmenu', (e) => { e.preventDefault(); removeBet('00'); });
             p00.addEventListener('mouseenter', () => showHoverInfo('00'));
             p00.addEventListener('mouseleave', () => clearHoverInfo());
 
@@ -913,6 +915,8 @@
             
             // Interaction & Hover
             p0.addEventListener('click', () => placeBet('0'));
+            // ADDED: Right-click listener for 0
+            p0.addEventListener('contextmenu', (e) => { e.preventDefault(); removeBet('0'); });
             p0.addEventListener('mouseenter', () => showHoverInfo('0'));
             p0.addEventListener('mouseleave', () => clearHoverInfo());
 
