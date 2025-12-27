@@ -198,8 +198,12 @@
             cursor: pointer;
         }
 
-        .zone { stroke: var(--border); stroke-width: 1px; transition: opacity 0.1s; }
-        .zone:hover { opacity: 0.8; }
+        .zone { 
+            stroke: var(--border); 
+            stroke-width: 1px; 
+            transition: fill 0.1s; /* Smooth color transition */
+        }
+        
         .zone-red { fill: var(--red); }
         .zone-black { fill: var(--black); }
         .zone-green { fill: var(--felt); stroke: var(--border); }
@@ -223,8 +227,16 @@
         }
 
         /* --- HITBOX VISUALIZATION --- */
-        .hitbox { fill: transparent; stroke: none; transition: fill 0.1s; cursor: pointer; }
-        .hitbox:hover { fill: rgba(241, 196, 15, 0.4); }
+        .hitbox { 
+            fill: transparent; 
+            stroke: none; 
+            transition: fill 0.1s; 
+            cursor: pointer; 
+        }
+        .zone:hover, .hitbox:hover {
+            fill: rgba(241, 196, 15, 0.4) !important; /* Override base colors (Red/Black/Green) */
+            opacity: 1; /* Ensure full visibility of the highlight */
+        }
 
         /* Chips */
         #chipLayer { pointer-events: none; }
@@ -369,10 +381,10 @@
         #hoverMsgRight { right: 22px; margin-top: 24px }
 
         .chip {
-            width: clamp(32px, 9vw, 40px);
-			height: clamp(32px, 9vw, 40px);
+            width: clamp(32px, 9vw, 56px);
+			height: clamp(32px, 9vw, 56px);
             border-radius: 50%;
-            border: 3px dashed white;
+            border: 5px dashed white;
             display: flex; justify-content: center; align-items: center;
             font-weight: bold; 
 			font-size: clamp(9px, 2.5vw, 12px); 
@@ -388,7 +400,7 @@
         .chip:active { transform: scale(0.95); }
         
         .chip.active { 
-            border-style: solid; 
+            border-style: solid;
             box-shadow: 0 0 10px var(--gold), inset 0 0 10px rgba(0,0,0,0.5); 
             transform: scale(1.15);
             z-index: 10;
@@ -445,6 +457,12 @@
                 gap: 8px;
             }
 			
+			.chip {
+                width: clamp(32px, 9vw, 40px);
+                height: clamp(32px, 9vw, 40px);
+				border: 3px dashed white;
+			}
+			
 			.header-bottom {
                 display: flex;
                 flex-direction: row;
@@ -496,7 +514,7 @@
     <div class="main-container">
         
         <div class="wheel-section">
-            <div class="wheel-svg-container">
+            <div class="wheel-svg-container" onclick="spin()" style="cursor: pointer;">
                 <svg viewBox="0 0 400 400">
                     <circle cx="200" cy="200" r="195" class="wheel-rim" />
                     <g id="wheelGroup"></g>
@@ -816,20 +834,21 @@
                 drawRect(i.toString(), GRID_X + c*CELL_W, GRID_Y + r*CELL_H, CELL_W, CELL_H, color, i);
             }
 
-            const HIT_SIZE = 16; 
+            // UPDATED: Hitbox thickness set to 22
+            const HIT_SIZE = 22; 
             
-            // --- 1. VERTICAL SPLITS ---
+            // --- 1. VERTICAL SPLITS (Side-by-Side numbers) ---
             for (let c = 0; c < 11; c++) {
                 const x = GRID_X + (c + 1) * CELL_W - (HIT_SIZE / 2);
                 for (let r = 0; r < 3; r++) {
-                    const y = GRID_Y + r * CELL_H + 5;
+                    const y = GRID_Y + r * CELL_H + 5; // +5 matches vertical padding logic
                     const valLeft = (c * 3) + (3-r);
                     const valRight = ((c + 1) * 3) + (3-r);
                     drawHitbox(`split_${valLeft}_${valRight}`, x, y, HIT_SIZE, CELL_H - 10, `Split ${valLeft}-${valRight}`);
                 }
             }
 
-            // --- 2. HORIZONTAL SPLITS ---
+            // --- 2. HORIZONTAL SPLITS (Stacked numbers) ---
             for (let c = 0; c < 12; c++) {
                 const x = GRID_X + c * CELL_W + 5;
                 for (let r = 0; r < 2; r++) {
@@ -840,7 +859,7 @@
                 }
             }
 
-            // --- 3. CORNERS ---
+            // --- 3. CORNERS (Quad bets) ---
             for (let c = 0; c < 11; c++) {
                 const x = GRID_X + (c + 1) * CELL_W - (HIT_SIZE / 2);
                 for (let r = 0; r < 2; r++) {
@@ -850,41 +869,66 @@
                 }
             }
 
-            // --- 4. STREETS ---
+            // --- 4. STREETS (Top and Bottom edges) ---
             for (let c = 0; c < 12; c++) {
                 const x = GRID_X + c * CELL_W;
                 const startNum = (c * 3) + 1; 
+                
                 // Top Street
-                drawHitbox(`street_${startNum}`, x, GRID_Y - 15, CELL_W, 15, `Street ${startNum}-${startNum+2}`);
+                drawHitbox(`street_${startNum}`, x, GRID_Y - (HIT_SIZE / 2), CELL_W, HIT_SIZE, `Street ${startNum}-${startNum+2}`);
+                
                 // Bottom Street
-                drawHitbox(`street_${startNum}`, x, GRID_Y + (CELL_H * 3), CELL_W, 15, `Street ${startNum}-${startNum+2}`);
+                drawHitbox(`street_${startNum}`, x, GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), CELL_W, HIT_SIZE, `Street ${startNum}-${startNum+2}`);
             }
 
-            // --- 5. SIX LINES ---
+            // --- 5. SIX LINES (Top and Bottom intersections) ---
             for (let c = 0; c < 11; c++) {
-                const x = GRID_X + (c+1) * CELL_W - 10;
+                const x = GRID_X + (c+1) * CELL_W - (HIT_SIZE / 2);
                 const startNum = (c * 3) + 1;
+
                 // Top Six Line
-                drawHitbox(`sixline_${startNum}`, x, GRID_Y - 15, 20, 15, `Six Line`);
+                drawHitbox(`sixline_${startNum}`, x, GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, `Six Line`);
+
                 // Bottom Six Line
-                drawHitbox(`sixline_${startNum}`, x, GRID_Y + (CELL_H * 3), 20, 15, `Six Line`);
+                drawHitbox(`sixline_${startNum}`, x, GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, `Six Line`);
             }
 
-            // --- 6. ZERO COMPLEX ---
-            drawHitbox('split_0_1', GRID_X - 10, GRID_Y + (CELL_H*2)+5, 20, CELL_H-10, "Split 0-1");
-            drawHitbox('split_0_2', GRID_X - 10, GRID_Y + CELL_H + (CELL_H/2), 20, CELL_H/2, "Split 0-2");
-            drawHitbox('split_00_2', GRID_X - 10, GRID_Y + CELL_H, 20, CELL_H/2, "Split 00-2");
-            drawHitbox('split_00_3', GRID_X - 10, GRID_Y+5, 20, CELL_H-10, "Split 00-3");
-            drawHitbox('trio_0_1_2', GRID_X - 10, GRID_Y + (CELL_H*2) - 10, 20, 20, "Basket 0-1-2");
-            drawHitbox('trio_00_2_3', GRID_X - 10, GRID_Y + CELL_H - 10, 20, 20, "Basket 00-2-3");
-            drawHitbox('split_0_00', 20, GRID_Y + zeroH - 10, GRID_X-20, 20, "Split 0-00");
-            drawHitbox('topline', GRID_X - 10, GRID_Y + (CELL_H*3) - 15, 20, 30, "Top Line (0,00,1,2,3)");
-            drawHitbox('topline', GRID_X - 10, GRID_Y - 15, 20, 30, "Top Line (0,00,1,2,3)");
+            // --- 6. ZERO COMPLEX (Consistent 22px Sizing) ---
+            
+            // Vertical Splits on the 0-Line
+            // 0-1 (Bottom Row)
+            drawHitbox('split_0_1', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 2) + 5, HIT_SIZE, CELL_H - 10, "Split 0-1");
+            
+            // 0-2 (Middle Row - Bottom Half)
+            drawHitbox('split_0_2', GRID_X - (HIT_SIZE / 2), GRID_Y + CELL_H + (CELL_H / 2), HIT_SIZE, CELL_H / 2, "Split 0-2");
+            
+            // 00-2 (Middle Row - Top Half)
+            drawHitbox('split_00_2', GRID_X - (HIT_SIZE / 2), GRID_Y + CELL_H, HIT_SIZE, CELL_H / 2, "Split 00-2");
+            
+            // 00-3 (Top Row)
+            drawHitbox('split_00_3', GRID_X - (HIT_SIZE / 2), GRID_Y + 5, HIT_SIZE, CELL_H - 10, "Split 00-3");
+
+            // Basket / Trios
+            // Intersection 0-1-2
+            drawHitbox('trio_0_1_2', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 2) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Basket 0-1-2");
+            
+            // Intersection 00-2-3
+            drawHitbox('trio_00_2_3', GRID_X - (HIT_SIZE / 2), GRID_Y + CELL_H - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Basket 00-2-3");
+            
+            // 0-00 Split
+            drawHitbox('split_0_00', 20, GRID_Y + zeroH - (HIT_SIZE / 2), GRID_X - 20, HIT_SIZE, "Split 0-00");
+
+            // Top Line (0,00,1,2,3)
+            // Bottom Corner (0-1 intersection extended)
+            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
+            
+            // Top Corner (00-3 intersection extended)
+            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
 
             drawOutsideBets();
         }
 
-function draw00And0(zeroH) {
+		function draw00And0(zeroH) {
             // 00 (Top Half)
             const p00 = document.createElementNS("http://www.w3.org/2000/svg", "path");
             p00.setAttribute("id", "zone_00");
@@ -1117,21 +1161,76 @@ function draw00And0(zeroH) {
             clearWinnerHighlight(); // Clear highlight
             playSound('click');
             const cost = Object.values(lastBets).reduce((a,b)=>a+b,0);
-            if(cost > balance) return showMsg("Insufficient funds", '#ff6b6b');
+            if(cost > balance) return showMsg("Insufficient funds!", '#ff6b6b');
             bets = JSON.parse(JSON.stringify(lastBets));
             updateUI();
         }
 
         function doubleBet() {
             if(isSpinning) return;
-            clearWinnerHighlight(); 
-            playSound('click');
             
+            // 1. Calculate totals
             const currentBetTotal = Object.values(bets).reduce((a,b)=>a+b,0);
-            if((currentBetTotal * 2) > balance) return showMsg("Insufficient funds", '#ff6b6b');
+            if (currentBetTotal === 0) return; // No bets to double
+
+            // 2. Determine funds available to add
+            // We want to add `currentBetTotal` (to double), but cap at `balance`.
+            // We also floor to 10 to ensure we only spend allowed increments.
+            const remainingBalance = balance - currentBetTotal;
+            let amountToAdd = Math.min(currentBetTotal, remainingBalance);
+            amountToAdd = Math.floor(amountToAdd / 10) * 10;
+
+            if (amountToAdd <= 0) return showMsg("Insufficient funds!", '#ff6b6b');
+
+            playSound('click');
+            clearWinnerHighlight();
+
+            // 3. Proportional Distribution Strategy
+            // We scale all bets up by the ratio of (TotalTarget / CurrentTotal)
+            // Then we distribute any rounding 'dust' to the largest bets first.
+            const totalTarget = currentBetTotal + amountToAdd;
+            const scale = totalTarget / currentBetTotal;
             
-            for(let k in bets) bets[k] *= 2;
+            let allocated = 0;
+            const additions = {};
+            
+            // Sort keys by bet size (descending) to prioritize main bets for remainders
+            const keys = Object.keys(bets).sort((a,b) => bets[b] - bets[a]);
+
+            // First pass: Scaled distribution
+            for(let k of keys) {
+                // Calculate target value, floored to 10
+                const targetVal = Math.floor((bets[k] * scale) / 10) * 10;
+                let add = targetVal - bets[k];
+                if(add < 0) add = 0;
+                
+                additions[k] = add;
+                allocated += add;
+            }
+
+            // Second pass: Distribute remainder (due to flooring) 10 by 10
+            let remainder = amountToAdd - allocated;
+            let i = 0;
+            while(remainder >= 10) {
+                // Cycle through bets (largest first) adding $10 until money runs out
+                const k = keys[i % keys.length];
+                additions[k] += 10;
+                allocated += 10;
+                remainder -= 10;
+                i++;
+            }
+
+            // 4. Apply changes
+            for(let k in additions) {
+                bets[k] += additions[k];
+            }
+
             updateUI();
+            if (amountToAdd < currentBetTotal) {
+                showMsg("Insufficient funds!", '#ff6b6b');
+            } else {
+                showMsg("Bets Doubled");
+            }
         }
 
         function showMsg(text, color='var(--gold)') {
