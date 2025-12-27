@@ -28,6 +28,8 @@
             margin: 0;
             padding: 10px;
             user-select: none;
+            overflow-x: hidden;
+            width: 100%;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -71,8 +73,7 @@
             flex-direction: column;
             gap: 5px;
             align-items: center;
-            width: 100%;
-            max-width: 800px;
+            width: 99%;
             margin-bottom: 15px;
             background-color: rgba(0,0,0,0);
             padding: 10px 0;
@@ -82,7 +83,10 @@
             width: 100%;
             display: flex;
             justify-content: center;
+            align-items: center; 
             position: static; 
+            margin-top: 5px;
+            min-height: 32px; 
         }
 
         .stats-row {
@@ -103,12 +107,12 @@
 		/* --- MUTE BUTTON --- */
 		.mute-btn {
 			position: absolute;
-			top: 10px;
+			top: 13px; 
 			right: 10px;
-			z-index: 100;
+			z-index: 501;
 			width: 32px;
 			height: 32px;
-			border-radius: 5px;
+			border-radius: 8px;
 			padding: 0;
 			background: #333;
 			border: 1px solid #555;
@@ -127,6 +131,8 @@
 		.mute-btn.muted svg { fill: #c0392b; } 
 		
         .history-bar {
+            display: none;
+            gap: 3px;
 			display: flex;
             gap: 5px;
             height: auto; 
@@ -442,40 +448,36 @@
 			.header-bottom {
                 display: flex;
                 flex-direction: row;
-                align-items: stretch; /* CRITICAL: Forces equal height */
+                align-items: center; 
                 justify-content: center;
-                gap: 8px; /* Space between bar and button */
-                margin-top: 5px;
+                gap: 10px; 
                 padding: 0 10px;
+                margin-top: 5px; /* Reduced margin for tighter mobile look */
+                position: relative;
             }
 
-            /* 2. Adapt Mute Button */
+            /* 2. Reset the Mute Button to flow naturally */
             .mute-btn {
-                position: static; /* Remove absolute positioning */
+                position: static; /* CRITICAL: Snaps button out of top-right corner */
                 top: auto; 
                 right: auto;
+                margin: 0;
                 
-                /* Reset dimensions to adapt to flex stretch */
-                width: 28px; 
-                height: auto;
-                aspect-ratio: 1 / 1; /* Keep it square */
-                
-                /* Styling tweaks for mobile integration */
-                border-radius: 12px; /* Soft square matches the bar's roundness better */
-                box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-                margin: 0; /* Remove any default margins */
+                /* Match History Bar Visuals */
+                width: 30px;
+                height: 30px;
+                flex-shrink: 0; 
+                border-radius: 50%;
             }
-
-            /* 3. Ensure History Bar fits */
+            /* 3. Ensure History Bar fits nicely */
             .history-bar {
                 margin-top: 0;
-                flex: 0 1 auto; /* Allow shrinking if screen is very small */
+                flex: 0 1 auto; 
             }
         }
     </style>
 </head>
 <body>
-    <button class="mute-btn" id="btnMute" onclick="toggleMute()"></button>
 
     <header>
         <div class="stats-row">
@@ -488,9 +490,9 @@
             <div class="history-bar" id="historyContainer">
                 <span class="history-label">History</span>
             </div>
+            <button class="mute-btn" id="btnMute" onclick="toggleMute()"></button>
         </div>
     </header>
-
     <div class="main-container">
         
         <div class="wheel-section">
@@ -1118,10 +1120,12 @@
 
         function doubleBet() {
             if(isSpinning) return;
-            clearWinnerHighlight(); // Clear highlight
+            clearWinnerHighlight(); 
             playSound('click');
-            const cost = Object.values(bets).reduce((a,b)=>a+b,0);
-            if(cost > balance) return showMsg("Insufficient funds", '#ff6b6b');
+            
+            const currentBetTotal = Object.values(bets).reduce((a,b)=>a+b,0);
+            if((currentBetTotal * 2) > balance) return showMsg("Insufficient funds", '#ff6b6b');
+            
             for(let k in bets) bets[k] *= 2;
             updateUI();
         }
@@ -1353,6 +1357,15 @@
 
 		function drawHistory() {
 			const hCont = document.getElementById('historyContainer');
+            
+            // Logic: Hide if empty, Show if has data
+            if (history.length === 0) {
+                hCont.style.display = 'none';
+                return;
+            } else {
+                hCont.style.display = 'flex';
+            }
+
 			hCont.innerHTML = '<span class="history-label">History</span>';
 			
 			history.forEach(val => {
