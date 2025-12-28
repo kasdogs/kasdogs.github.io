@@ -993,10 +993,10 @@
 
             // Top Line (0,00,1,2,3)
             // Bottom Corner (0-1 intersection extended)
-            drawHitbox('topline_1', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
+            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y + (CELL_H * 3) - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
             
             // Top Corner (00-3 intersection extended)
-            drawHitbox('topline_2', GRID_X - (HIT_SIZE / 2), GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
+            drawHitbox('topline', GRID_X - (HIT_SIZE / 2), GRID_Y - (HIT_SIZE / 2), HIT_SIZE, HIT_SIZE, "Top Line (0,00,1,2,3)");
 
             drawOutsideBets();
         }
@@ -1193,7 +1193,7 @@ function placePattern(type) {
             } 
             else if(type === 'kavouras') {
                 betsToPlace.push({id: 'topline', val: 20});
-                ['split_8_11', 'split_13_14', 'split_15_18', 'split_17_20', 'split_27_30', 'corner_32', 'split_0_00']
+                ['split_8_11', 'split_13_14', 'split_15_18', 'split_17_20', 'split_27_30', 'corner_32',]
                     .forEach(id => betsToPlace.push({id: id, val: 20}));
                 name = "Kavouras";
             } 
