@@ -1151,6 +1151,7 @@
             playSound('click');
             const m = document.getElementById('specialMenu');
             m.classList.toggle('active');
+			localStorage.setItem('rouletteLastActiveTime', Date.now());
         }
 		
 function placePattern(type) {
@@ -1265,6 +1266,7 @@ function placePattern(type) {
                 }
                 
                 updateUI();
+				localStorage.setItem('rouletteLastActiveTime', Date.now());
             }
         }
 
