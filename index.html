@@ -722,14 +722,19 @@
 			
 			// Check if session expired
 			if (timeDiff > TEN_MINUTES_MS) {
-				// Expired: Clear Session Data (History & Chip)
+				// Expired: Clear Session Data
 				localStorage.removeItem('rouletteHistory');
 				localStorage.removeItem('rouletteSelectedChip');
+				localStorage.removeItem('rouletteLastBets'); // <--- ADD THIS
+				
 				history = [];
-				currentChipValue = 10; // Default back to 10
+				lastBets = {}; // <--- ADD THIS
+				currentChipValue = 10;
 			} else {
 				// Active: Restore Session Data
 				history = JSON.parse(localStorage.getItem('rouletteHistory')) || [];
+				lastBets = JSON.parse(localStorage.getItem('rouletteLastBets')) || {}; // <--- ADD THIS
+				
 				const savedChip = parseInt(localStorage.getItem('rouletteSelectedChip'));
 				if (savedChip) currentChipValue = savedChip;
 			}
@@ -763,7 +768,26 @@
 						restartGame();
 					}
 				}
+				
 			});
+			
+			const pendingBets = localStorage.getItem('roulettePendingBets');
+			if (pendingBets) {
+				bets = JSON.parse(pendingBets);
+				// Restore balance momentarily for the visual, or just calculate from current
+				// Since balance was already saved as deducted, we just need to see if they won.
+				
+				// Pick a random number instantly
+				const rIdx = Math.floor(Math.random() * WHEEL_ORDER.length);
+				const resultVal = WHEEL_ORDER[rIdx];
+				
+				// Show what happened
+				showMsg(`Previous spin result: ${resultVal}`);
+				resolveBet(resultVal); // This will add winnings and clear the pending flag
+				
+				// Clear the pending bets immediately to prevent loops
+				localStorage.removeItem('roulettePendingBets');
+			}
 
 			// If user was bankrupt on reload, reset to 0 but show modal
 			if (balance <= 0) {
@@ -1373,21 +1397,27 @@ function placePattern(type) {
             }
         }
 
-        function spin() {
-            if(isSpinning) return;
-            const totalBet = Object.values(bets).reduce((a,b)=>a+b,0);
-            if(totalBet === 0) return showMsg("Please place a bet!");
-            
-            clearWinnerHighlight(); // Ensure highlight is gone on spin
-            
-            // Start Spin Audio
-            playSound('spin');
-            
-            balance -= totalBet;
-            lastBets = JSON.parse(JSON.stringify(bets));
-            isSpinning = true;
-            updateUI();
-            showMsg("No more bets...");
+		function spin() {
+			if(isSpinning) return;
+			const totalBet = Object.values(bets).reduce((a,b)=>a+b,0);
+			if(totalBet === 0) return showMsg("Please place a bet!");
+			
+			// --- ANTI-CHEAT: DEDUCT & SAVE IMMEDIATELY ---
+			balance -= totalBet;
+			localStorage.setItem('rouletteBalance', balance);
+			localStorage.setItem('roulettePendingBets', JSON.stringify(bets));
+			// ---------------------------------------------
+
+			clearWinnerHighlight();
+			playSound('spin');
+			
+			// (Remove the old 'balance -= totalBet;' line if it exists lower down)
+			
+			lastBets = JSON.parse(JSON.stringify(bets)); // Save for rebet
+			localStorage.setItem('rouletteLastBets', JSON.stringify(lastBets));
+			isSpinning = true;
+			updateUI();
+			showMsg("No more bets...");
             
             // Spin Animation
             const rIdx = Math.floor(Math.random() * WHEEL_ORDER.length);
@@ -1491,6 +1521,7 @@ function placePattern(type) {
 
 			// Save to local storage
 			localStorage.setItem('rouletteHistory', JSON.stringify(history));
+			localStorage.removeItem('roulettePendingBets');
 
 			// Update the visual bar
 			drawHistory();
