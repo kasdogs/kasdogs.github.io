@@ -714,8 +714,36 @@
         let highScore = localStorage.getItem('rouletteProMaxHighScore') || 500;
 
         window.onload = () => {
-            // Restore Mute State
-            const savedMute = localStorage.getItem('rouletteMuted');
+			// --- 1. SESSION TIMEOUT CHECK (10 Minutes) ---
+			const TEN_MINUTES_MS = 10 * 60 * 1000;
+			const now = Date.now();
+			const lastActive = parseInt(localStorage.getItem('rouletteLastActiveTime')) || 0;
+			const timeDiff = now - lastActive;
+			
+			// Check if session expired
+			if (timeDiff > TEN_MINUTES_MS) {
+				// Expired: Clear Session Data (History & Chip)
+				localStorage.removeItem('rouletteHistory');
+				localStorage.removeItem('rouletteSelectedChip');
+				history = [];
+				currentChipValue = 10; // Default back to 10
+			} else {
+				// Active: Restore Session Data
+				history = JSON.parse(localStorage.getItem('rouletteHistory')) || [];
+				const savedChip = parseInt(localStorage.getItem('rouletteSelectedChip'));
+				if (savedChip) currentChipValue = savedChip;
+			}
+
+			// --- 2. PERSISTENT DATA (Always Load) ---
+			// Restore Mute State
+			const savedMute = localStorage.getItem('rouletteMuted');
+			if (savedMute === 'true') isMuted = true;
+			updateMuteUI();
+
+			// Restore Balance & Score
+			balance = parseInt(localStorage.getItem('rouletteBalance')) || 500;
+			highScore = localStorage.getItem('rouletteProMaxHighScore') || 500;
+
 			// --- GAME OVER INPUTS ---
 			const gameOverModal = document.getElementById('gameOverModal');
 
@@ -736,21 +764,24 @@
 					}
 				}
 			});
-            if (savedMute === 'true') isMuted = true;
-            updateMuteUI();
 
-            // If user was bankrupt on reload, reset to 0 but show modal immediately
-            if (balance <= 0) {
-                 setTimeout(() => document.getElementById('gameOverModal').style.display = 'flex', 100);
-            }
+			// If user was bankrupt on reload, reset to 0 but show modal
+			if (balance <= 0) {
+					setTimeout(() => document.getElementById('gameOverModal').style.display = 'flex', 100);
+			}
 
-            document.getElementById('balanceDisplay').innerText = balance;
-            document.getElementById('highScoreDisplay').innerText = highScore;
-            drawWheel();
-            drawBoard();
+			// Update UI elements
+			document.getElementById('balanceDisplay').innerText = balance;
+			document.getElementById('highScoreDisplay').innerText = highScore;
+			
+			// Force the visual update for the selected chip
+			selectChip(currentChipValue, true); // (See Step 2 for the 'true' parameter update)
+
+			drawWheel();
+			drawBoard();
 			drawHistory();
-            document.getElementById('boardSvg').addEventListener('contextmenu', event => event.preventDefault());
-        };
+			document.getElementById('boardSvg').addEventListener('contextmenu', event => event.preventDefault());
+		};
 
         // --- RENDER FUNCTIONS ---
         function drawWheel() {
@@ -1021,12 +1052,23 @@
             document.querySelectorAll('.winner-anim').forEach(e => e.classList.remove('winner-anim'));
         }
 
-		function selectChip(val) {
-            currentChipValue = val;
-            playSound('click'); 
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.chip-${val}`).classList.add('active');
-        }
+		function selectChip(val, skipSound = false) {
+			currentChipValue = val;
+			
+			// Save selection and update timestamp
+			localStorage.setItem('rouletteSelectedChip', val);
+			localStorage.setItem('rouletteLastActiveTime', Date.now());
+
+			if (!skipSound) playSound('click'); 
+			
+			document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+			// Ensure the selector finds the chip even if it was dynamically loaded
+			const chipBtn = document.querySelector(`.chip-${val}`);
+			if (chipBtn) chipBtn.classList.add('active');
+			
+			const instr = document.querySelector('.instruction-text');
+			if(instr) instr.innerHTML = `L-Click: Bet $${val} &bull; R-Click: Remove $${val}`;
+		}
 
         function placeBet(id, amount = null) {
             if(isSpinning) return;
@@ -1087,49 +1129,97 @@
             m.classList.toggle('active');
         }
 		
-		function placePattern(type) {
+function placePattern(type) {
             if(isSpinning) return;
-            playSound('click'); 
-            clearWinnerHighlight(); // Clear highlight
+            
+            // 1. Define Pattern Data
+            let betsToPlace = []; // Array of {id, val}
+            let name = "";
+
             if(type === 'snake') {
-                SNAKE_NUMS.forEach(n => placeBet(n.toString(), 10));
-                showMsg("Red Snake Bet Placed");
-            }
+                SNAKE_NUMS.forEach(n => betsToPlace.push({id: n.toString(), val: 20}));
+                name = "Red Snake";
+            } 
             else if(type === '007') {
-                placeBet('high', 140); placeBet('sixline_13', 50); placeBet('split_0_00', 10);
-                showMsg("007 Bet Placed");
-            }
+                betsToPlace = [
+                    {id: 'high', val: 140}, {id: 'sixline_13', val: 50}, {id: 'split_0_00', val: 10}
+                ];
+                name = "007";
+            } 
             else if(type === 'romanosky') {
-                placeBet('corner_32', 10); placeBet('corner_28', 10);
-                placeBet('dozen1', 30); placeBet('dozen2', 30);
-                showMsg("Romanosky Bet Placed");
-            }
+                betsToPlace = [
+                    {id: 'corner_32', val: 20}, {id: 'corner_28', val: 20},
+                    {id: 'dozen1', val: 60}, {id: 'dozen2', val: 60}
+                ];
+                name = "Romanosky";
+            } 
             else if(type === 'shotwell') {
-                placeBet('sixline_1', 10);
-                ['8', '10', '20', '26'].forEach(n => placeBet(n, 10));
-                showMsg("Shotwell Bet Placed");
-            }
+                betsToPlace.push({id: 'sixline_1', val: 40});
+                ['8', '10', '20', '26'].forEach(n => betsToPlace.push({id: n, val: 40}));
+                name = "Shotwell";
+            } 
             else if(type === 'five_quad') {
-                placeBet('corner_5', 10); placeBet('corner_10', 10); placeBet('corner_17', 10); 
-                placeBet('corner_23', 10); placeBet('corner_32', 10); placeBet('00', 10);
-                showMsg("Five Quad Bet Placed");
-            }
+                ['corner_5', 'corner_10', 'corner_17', 'corner_23', 'corner_32', '00']
+                    .forEach(id => betsToPlace.push({id: id, val: 30}));
+                name = "Five Quad";
+            } 
             else if(type === '3_2_red') {
-                placeBet('red', 30); placeBet('c2', 20);
-                showMsg("3/2 Red Bet Placed");
-            }
+                betsToPlace = [{id: 'red', val: 120}, {id: 'c2', val: 80}];
+                name = "3/2 Red";
+            } 
             else if(type === 'kavouras') {
-                placeBet('topline', 10); placeBet('split_8_11', 10); placeBet('split_13_14', 10);
-                placeBet('split_15_18', 10); placeBet('split_17_20', 10); placeBet('split_27_30', 10);
-                placeBet('corner_32', 10);
-                showMsg("Kavouras Bet Placed");
-            }
+                betsToPlace.push({id: 'topline', val: 20});
+                ['split_8_11', 'split_13_14', 'split_15_18', 'split_17_20', 'split_27_30', 'corner_32', 'split_0_00']
+                    .forEach(id => betsToPlace.push({id: id, val: 20}));
+                name = "Kavouras";
+            } 
             else if(type === '666') {
-                placeBet('red', 90);
+                betsToPlace.push({id: 'red', val: 90});
                 ['split_0_00', 'split_8_11', 'split_10_13', 'split_17_20', 'split_26_29', 'split_28_31']
-                    .forEach(id => placeBet(id, 10));
-                ['4', '6', '15'].forEach(n => placeBet(n, 10));
-                showMsg("666 Bet Placed");
+                    .forEach(id => betsToPlace.push({id: id, val: 10}));
+                ['4', '6', '15'].forEach(n => betsToPlace.push({id: n.toString(), val: 10}));
+                name = "666";
+            }
+
+            if(betsToPlace.length === 0) return;
+
+            // 2. Calculate Costs & Check Balance
+            const patternCost = betsToPlace.reduce((sum, item) => sum + item.val, 0);
+            const currentBets = Object.values(bets).reduce((a,b)=>a+b,0);
+            const availableFunds = balance - currentBets;
+
+            // 3. Determine Scaling Factor
+            let scale = 1.0;
+            if (patternCost > availableFunds) {
+                if (availableFunds < 10) return showMsg("Insufficient funds!", '#ff6b6b');
+                scale = availableFunds / patternCost;
+            }
+
+            playSound('click'); 
+            clearWinnerHighlight();
+
+            // 4. Place Scaled Bets
+            let placedCount = 0;
+            betsToPlace.forEach(bet => {
+                // Scale down and floor to nearest 10
+                let amount = bet.val;
+                if (scale < 1.0) {
+                    amount = Math.floor((bet.val * scale) / 10) * 10;
+                }
+
+                // Place bet if it meets the $10 minimum
+                if (amount >= 10) {
+                    placeBet(bet.id, amount);
+                    placedCount++;
+                }
+            });
+
+            // 5. User Feedback
+            if (placedCount > 0) {
+                if (scale < 1.0) showMsg(`${name} Bet Placed`);
+                else showMsg(`${name} Bet Placed`);
+            } else {
+                showMsg("Funds too low for this pattern", '#ff6b6b');
             }
         }
 		
@@ -1389,7 +1479,9 @@
         }
         function resolveBet(result) {
             isSpinning = false;
-            
+
+			// Update timestamp so session stays alive
+			localStorage.setItem('rouletteLastActiveTime', Date.now());
             // Stop Spin Audio
             stopSound('spin');
 
