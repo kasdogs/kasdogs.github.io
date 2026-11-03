@@ -5241,7 +5241,13 @@ void main(){
       if (hit) { e.preventDefault(); wake(); }
       return;
     }
-    if (tgt && tgt.closest && tgt.closest("button") && (k === " " || k === "Enter")) return;
+    // Space/Enter on a button you tabbed to presses it. A button you clicked with the mouse keeps focus too, but
+    // Space there should switch presets as usual, so it lets go of focus instead (Enter still presses it).
+    const btn = tgt && tgt.closest && tgt.closest("button");
+    if (btn && (k === " " || k === "Enter")) {
+      if (k === "Enter" || !btn.focusedByPointer) return;
+      btn.blur();
+    }
     if (k === " ") goRandom(e.shiftKey); // Shift+Space: hard cut
     else if (k === "ArrowRight" || k === ".") goForward(() => load(curIndex + 1, {viaNext: true}));
     else if (k === "ArrowLeft" || k === ",") goPrev();
@@ -5257,6 +5263,12 @@ void main(){
     else hit = false;
     if (hit) { e.preventDefault(); wake(); }
   });
+
+  // remember whether each control was focused by a mouse/touch press or from the keyboard (see Space above)
+  let pointerNav = false;
+  addEventListener("pointerdown", () => { pointerNav = true; }, true);
+  addEventListener("keydown", (e) => { if (e.key === "Tab") pointerNav = false; }, true);
+  addEventListener("focusin", (e) => { if (e.target) e.target.focusedByPointer = pointerNav; }, true);
 
   let idleTimer = 0;
   function wake() {
