@@ -4504,10 +4504,9 @@ void main(){
   const presetList = new VList($("#presetList"), (i) => load(i));
   const mashList = new VList($("#mashList"), (i) => { mash.slots[mash.active] = i; applyMash(); mashList.set(mashList.data, i); });
   /* ---- preset search ----
-   * Words match in any order and all must match (AND), as substrings, ignoring case, accents and punctuation:
-   * "geiss tokamak", "eos phat", "royal 157". "quoted words" must appear as a phrase; -word excludes.
-   * Results are ranked (whole words and word starts first, then earlier/shorter names); ties keep list order,
-   * so favorites stay ahead. If nothing matches, a typo-tolerant fuzzy pass runs instead ("tokamk", "fractl"). */
+   * Every word must appear, in any order, as part of the name, ignoring case, accents and punctuation:
+   * "geiss tokamak", "bjork", "eos" (Eo.S.), "royal 157". "quoted words" must appear as that exact phrase;
+   * -word or -"phrase" leaves out names containing it. Results keep the list's order (favorites first). */
   const fold = (t) => t.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
   function searchKey(it) {
     if (it._sk && it._sk.name === it.name) return it._sk;
@@ -4528,67 +4527,22 @@ void main(){
     }
     return terms;
   }
-  // exact score for one term, or -1: whole word > word start > inside a word > across punctuation ("eos" in "Eo.S.")
-  function termScore(k, t) {
-    const sp = k.spaced;
-    if (sp.includes(" " + t.text + " ")) return 4;
-    const at = sp.indexOf(" " + t.text);
-    if (at >= 0) return 3 - Math.min(1, at / 400);
-    if (!t.phrase && sp.includes(t.text)) return 2;
-    if (k.compact.includes(t.compact)) return 1;
-    return -1;
-  }
-  function editWithin(a, b, max) { // Levenshtein distance <= max
-    if (Math.abs(a.length - b.length) > max) return false;
-    let prev = Array.from({length: b.length + 1}, (_, j) => j);
-    for (let i = 1; i <= a.length; i++) {
-      const cur = [i]; let best = i;
-      for (let j = 1; j <= b.length; j++) {
-        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-        if (cur[j] < best) best = cur[j];
-      }
-      if (best > max) return false;
-      prev = cur;
-    }
-    return prev[b.length] <= max;
-  }
-  function fuzzyScore(k, t) {
-    const w = t.compact;
-    if (w.length < 3) return -1;
-    const max = w.length >= 7 ? 2 : 1;
-    // a typo in one word, or in that many leading letters of a word ("tokamk" ~ "tokamak", "fractl" ~ "fractals")
-    for (const word of k.words) {
-      if (editWithin(w, word, max) || (word.length > w.length && editWithin(w, word.slice(0, w.length + 1), max))) return 0.8;
-    }
-    // letters in order, close together ("pltry" ~ "planetary")
-    const c = k.compact;
-    for (let s = c.indexOf(w[0]); s >= 0; s = c.indexOf(w[0], s + 1)) {
-      let j = 1, e = s + 1;
-      for (; e < c.length && j < w.length && e - s <= w.length * 2 + 1; e++) if (c[e] === w[j]) j++;
-      if (j === w.length) return 0.5;
-    }
-    return -1;
+  // does the name contain this term? (as a word sequence, or across punctuation: "eos" in "Eo.S.")
+  function termHit(k, t) {
+    if (t.phrase) return k.spaced.includes(" " + t.text + " ") || k.spaced.includes(" " + t.text) || k.compact.includes(t.compact);
+    return k.spaced.includes(t.text) || k.compact.includes(t.compact);
   }
   function filtered(q) {
     const terms = parseQuery(q || "");
-    if (!terms.length) return lib.map((_, i) => i);
-    const pos = terms.filter((t) => !t.neg), neg = terms.filter((t) => t.neg);
-    const run = (scoreFn) => {
-      const hits = [];
-      for (let i = 0; i < lib.length; i++) {
+    const out = [];
+    for (let i = 0; i < lib.length; i++) {
+      if (terms.length) {
         const k = searchKey(lib[i]);
-        if (neg.some((t) => termScore(k, t) >= 0)) continue;
-        let total = 0, ok = true;
-        for (const t of pos) { const sc = scoreFn(k, t); if (sc < 0) { ok = false; break; } total += sc; }
-        // with only exclusions there's nothing to rank: keep the list order (favorites first)
-        if (ok) hits.push({i, total: pos.length ? total - Math.min(0.5, k.spaced.length / 600) : 0});
+        if (!terms.every((t) => termHit(k, t) !== t.neg)) continue;
       }
-      hits.sort((a, b) => b.total - a.total || a.i - b.i);
-      return hits.map((h) => h.i);
-    };
-    const exact = run(termScore);
-    if (exact.length || !pos.length) return exact;
-    return run((k, t) => { const e = termScore(k, t); return e >= 0 ? e : fuzzyScore(k, t); });
+      out.push(i);
+    }
+    return out;
   }
   function texLine() {
     const site = siteTex.names.size, mine = Math.max(0, engine.userTextures.size - site);
