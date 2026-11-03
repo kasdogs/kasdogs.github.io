@@ -207,7 +207,8 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .kbd{font-size:11px;color:var(--dim);line-height:1.6}
 /* while the panel doesn't have the keys (the visualizer was clicked last) it goes grey and darker */
 #drawer .pane,#drawer .tabs button{transition:filter .2s,color .2s,border-color .2s}
-body.menukeys-off #drawer .pane{filter:saturate(.7) brightness(.86)}
+body.menukeys-off #drawer .pane,body.menukeys-off #keysPanel > *{filter:saturate(.7) brightness(.86)}
+#keysPanel > *{transition:filter .2s}
 body.menukeys-off #drawer .tabs button{color:var(--dim)}
 body.menukeys-off #drawer .tabs button[aria-selected="true"]{color:var(--dim);border-bottom-color:rgba(150,180,225,.4)}
 .kbd b{color:var(--ink);font-weight:500}
@@ -4730,8 +4731,10 @@ void main(){
   // so A, F, Space... work without closing the menu; clicking or focusing the panel takes them again.
   let menuFocus = true;
   function setMenuFocus(on) { menuFocus = on; document.body.classList.toggle("menukeys-off", !on); }
-  addEventListener("pointerdown", (e) => { setMenuFocus(!!(e.target && e.target.closest && e.target.closest("#drawer"))); }, true);
-  addEventListener("focusin", (e) => { if (e.target && e.target.closest && e.target.closest("#drawer")) setMenuFocus(true); }, true);
+  // the help panel follows the same focus (it has no keys of its own, but looks the same way)
+  const inMenu = (el) => !!(el && el.closest && el.closest("#drawer, #keysPanel"));
+  addEventListener("pointerdown", (e) => { setMenuFocus(inMenu(e.target)); }, true);
+  addEventListener("focusin", (e) => { if (inMenu(e.target)) setMenuFocus(true); }, true);
   function openDrawer(tab, toggle) {
     if (!$("#keysPanel").hidden) toggleHelp(false);
     if (toggle && openTab === tab && !$("#drawer").hidden) { closeDrawer(); return; }
@@ -5245,6 +5248,7 @@ void main(){
     const p = $("#keysPanel"); const open = force !== undefined ? force : p.hidden;
     if (open) closeDrawer();
     p.hidden = !open; $("#bKeys").setAttribute("aria-expanded", String(open)); $("#bKeys").classList.toggle("on", open); wake();
+    if (open) setMenuFocus(true);
   }
   $("#bKeys").addEventListener("click", () => toggleHelp());
 
