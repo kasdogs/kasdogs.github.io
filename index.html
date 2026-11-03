@@ -1805,9 +1805,12 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 
   /* built-in functions */
   const UNARY = {sin: "sin", cos: "cos", tan: "tan", asin: "asin", acos: "acos", atan: "atan", sinh: "sinh", cosh: "cosh", tanh: "tanh",
-    exp: "exp", exp2: "exp2", log: "log", log2: "log2", sqrt: "sqrt", floor: "floor", ceil: "ceil", round: "round", trunc: "trunc",
-    radians: "radians", degrees: "degrees", normalize: "normalize", frac: "fract", rsqrt: "inversesqrt", ddx: "dFdx", ddy: "dFdy",
+    exp: "exp", exp2: "exp2", floor: "floor", ceil: "ceil", round: "round", trunc: "trunc",
+    radians: "radians", degrees: "degrees", normalize: "normalize", frac: "fract", ddx: "dFdx", ddy: "dFdy",
     ddx_coarse: "dFdx", ddy_coarse: "dFdy", ddx_fine: "dFdx", ddy_fine: "dFdy", fwidth: "fwidth"};
+  // DirectX 9's sqrt/rsqrt/log/pow use the absolute value of their input (the rsq, log and pow instructions do),
+  // where GLSL returns NaN for negatives; presets rely on this, and a NaN would spread through the feedback.
+  const ABS_UNARY = {sqrt: "sqrt", rsqrt: "inversesqrt", log: "log", log2: "log2"};
   const KEEP_INT = {abs: "abs", sign: "sign"};
   Parser.prototype.call = function (name) {
     const tr = this.tr;
@@ -1827,6 +1830,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       return {code: fn.glslName + "(" + codes.join(", ") + ")", type: fn.ret};
     }
     if (UNARY[name] && A.length === 1) { const T = fty(A[0]); return {code: UNARY[name] + "(" + conv(A[0], T) + ")", type: T}; }
+    if (ABS_UNARY[name] && A.length === 1) { const T = fty(A[0]); return {code: ABS_UNARY[name] + "(abs(" + conv(A[0], T) + "))", type: T}; }
     if (KEEP_INT[name] && A.length === 1) { const T = A[0].type.b === "int" ? A[0].type : fty(A[0]); return {code: name + "(" + conv(A[0], T) + ")", type: T}; }
     const cw = (fnName, keepInt) => {
       let T = A[0].type;
@@ -1837,8 +1841,8 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     };
     switch (name) {
       case "saturate": { const T = fty(A[0]); return {code: "clamp(" + conv(A[0], T) + ", 0.0, 1.0)", type: T}; }
-      case "log10": { const T = fty(A[0]); return {code: "(log(" + conv(A[0], T) + ")*0.4342944819)", type: T}; }
-      case "pow": return cw("pow", false);
+      case "log10": { const T = fty(A[0]); return {code: "(log(abs(" + conv(A[0], T) + "))*0.4342944819)", type: T}; }
+      case "pow": { const r = cw("pow", false); return {code: "pow(abs(" + conv(A[0], r.type) + "), " + conv(A[1], r.type) + ")", type: r.type}; }
       case "min": return cw("min", true);
       case "max": return cw("max", true);
       case "step": return cw("step", false);
