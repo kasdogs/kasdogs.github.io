@@ -305,7 +305,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <dt>P</dt><dd>Open presets menu</dd>
       <dt>M</dt><dd>Open mash-up menu</dd>
       <dt>A</dt><dd>Open audio menu</dd>
-      <dt>K</dt><dd>Play / pause the queue</dd>
+      <dt>K</dt><dd>Pause / play audio source</dd>
       <dt>? / F1</dt><dd>Help / hotkeys</dd>
       <dt>Esc</dt><dd>Close settings or this panel</dd>
     </dl>
@@ -5086,6 +5086,12 @@ void main(){
   $("#clearQueue").addEventListener("click", () => audio.clearQueue());
   audio.repeat = ["off", "all", "one"].includes(LS.get("repeat", "off")) ? LS.get("repeat", "off") : "off";
   audio.shuffle = !!LS.get("shuffleTracks", false);
+  // K: pause/play (or mute/unmute) whichever audio source is active; nothing in demo mode
+  function toggleActiveSource() {
+    if (audio.mode === "file") audio.togglePlay();
+    else if (audio.mode === "stream" && audio.stream) audio.toggleStream();
+    else if (audio.mode === "mic" && audio.mic) audio.setMicMuted(!audio.mic.muted);
+  }
   function togglePlay() { if (audio.queue.length) { if (audio.mode !== "file") showSrc("file"); audio.togglePlay(); } }
   $("#micMute").addEventListener("click", () => { if (audio.mic) audio.setMicMuted(!audio.mic.muted); });
   // input gain (sensitivity): -inf to +12 dB. 0 dB sits at 70% of the slider; above it the scale is 12 dB over
@@ -5311,7 +5317,7 @@ void main(){
     else if (k === "p" || k === "P") openDrawer("presets", true);
     else if (k === "m" || k === "M") openDrawer("mash", true);
     else if (k === "s" || k === "S") toggleSettings();
-    else if (k === "k" || k === "K") togglePlay();
+    else if (k === "k" || k === "K") toggleActiveSource();
     else if (k === "f" || k === "F") fullscreen();
     else if (k === "?" || k === "F1") toggleHelp();
     else hit = false;
