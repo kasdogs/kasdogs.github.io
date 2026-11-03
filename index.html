@@ -4777,15 +4777,14 @@ void main(){
   }
   $("#keepLib").addEventListener("click", () => setKeep(!settings.keep, true));
   setKeep(settings.keep, false);
-  /* ---- presets folder on the site (kasdogs/kasdogs.github.io: presets/) ---- */
-  const SITE = {origin: "https://kas.dog/", repo: "kasdogs/kasdogs.github.io", branch: "main"};
-  const TEX_RE = /\.(jpe?g|png|gif|bmp|webp|tga)$/i;
-  // Lists a folder of the site: its index.json (kept current by the GitHub Action) on this
-  // origin, then on kas.dog, then the GitHub API if no index has been built yet.
-  async function siteList(dir, keys, re, trustEmpty) {
+  /* ---- presets folder on the site ---- */
+  const SITE = {origin: "https://kas.dog/"};
+  // Lists a folder of the site from its index.json (written by every deploy): on this origin first, then on kas.dog.
+  async function siteList(dir, keys, trustEmpty) {
     const bases = [];
     if (/^https?:$/.test(location.protocol)) bases.push(new URL(dir, location.href).href);
     if (!bases.includes(SITE.origin + dir)) bases.push(SITE.origin + dir);
+    let empty = null;
     for (const base of bases) {
       try {
         const r = await fetch(base + "index.json", {cache: "no-cache"});
@@ -4793,22 +4792,20 @@ void main(){
         const j = await r.json();
         const files = keys.flatMap((k) => j[k] || []);
         if (files.length || trustEmpty) return {base, files, index: j};
+        empty = empty || {base, files, index: j};
       } catch (e) {}
     }
-    const r = await fetch("https://api.github.com/repos/" + SITE.repo + "/git/trees/" + SITE.branch + "?recursive=1");
-    if (!r.ok) throw new Error(r.status === 403 ? "GitHub's API limit was reached. Try again in an hour." : "Couldn't list the " + dir.replace("/", "") + " folder (" + r.status + ").");
-    const j = await r.json();
-    const files = (j.tree || []).filter((t) => t.type === "blob" && t.path.startsWith(dir) && re.test(t.path)).map((t) => t.path.slice(dir.length));
-    return {base: bases[0], files, index: null};
+    if (empty) return empty; // the folder is listed but empty
+    throw new Error("Couldn't list the " + dir.replace("/", "") + " folder. Check your connection and try again.");
   }
-  const sitePresetList = () => siteList("presets/", ["presets", "textures"], /\.(milk|jpe?g|png|gif|bmp|webp|tga)$/i);
+  const sitePresetList = () => siteList("presets/", ["presets", "textures"]);
   const fileUrl = (base, f) => base + f.split("/").map(encodeURIComponent).join("/");
 
   /* ---- textures folder on the site: loaded on every visit, never copied into the library ---- */
   const siteTex = {names: new Set(), state: "loading", failed: 0, total: 0};
   async function loadSiteTextures() {
     try {
-      const {base, files} = await siteList("textures/", ["textures"], TEX_RE, true);
+      const {base, files} = await siteList("textures/", ["textures"], true);
       siteTex.total = files.length;
       let next = 0;
       const worker = async () => {
@@ -5330,7 +5327,7 @@ void main(){
       return bundled.presets.length;
     }
     try {
-      const {base, files, index} = await siteList("starters/", ["presets"], /\.milk$/i, true);
+      const {base, files, index} = await siteList("starters/", ["presets"], true);
       defaultName = ((index && index.default) || "").replace(/\.milk$/i, "");
       if (!defaultName) { try { const r = await fetch(base + "default.txt", {cache: "no-cache"}); if (r.ok) defaultName = (await r.text()).trim().split(/\r?\n/)[0].replace(/\.milk$/i, ""); } catch (e) {} }
       const milk = files.filter((f) => /\.milk$/i.test(f));
