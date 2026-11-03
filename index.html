@@ -2231,15 +2231,8 @@ ${copyInit}  vec2 uv = _uv.xy;
     if (this.stream && this.analysisBlocked) { this.stream.el.volume = this.volume; this.stream.el.muted = this.muted; }
   };
   AudioEngine.prototype.setVolume = function (v) { this.volume = v; this.applyVolume(); };
-  // muting silences the speakers and the visuals alike
+  // muting only silences the speakers; analysis is upstream of the output gain, so the visuals keep moving
   AudioEngine.prototype.setMuted = function (m) { this.muted = !!m; this.applyVolume(); };
-  // true when the active source should read as silence: muted, or paused
-  AudioEngine.prototype.silenced = function () {
-    if (this.mode === "mic") return !!(this.mic && this.mic.muted);
-    if (this.mode === "file") return !!(this.file && (!this.file.playing || this.muted));
-    if (this.mode === "stream") return !!(this.stream && (this.stream.paused || this.muted));
-    return false;
-  };
 
   AudioEngine.prototype.stopAll = function () {
     if (this.player) { try { this.player.pause(); } catch (e) {} }
@@ -2563,7 +2556,7 @@ ${copyInit}  vec2 uv = _uv.xy;
   AudioEngine.prototype.levels = function () {
     const live = this.ctx && (this.mode === "mic" || (this.mode === "file" && this.file) || (this.mode === "stream" && !this.analysisBlocked));
     if (!live || !this.td) return null;
-    if (this.silenced()) return [0, 0, 0, 0];
+    if ((this.mode === "file" && !this.file.playing) || (this.mode === "stream" && this.stream && this.stream.paused) || (this.mode === "mic" && this.mic && this.mic.muted)) return [0, 0, 0, 0];
     const out = [0, 0, 0, 0];
     for (let c = 0; c < 2; c++) {
       const td = this.td[c]; let sum = 0, pk = 0;
@@ -2577,11 +2570,8 @@ ${copyInit}  vec2 uv = _uv.xy;
   /* ---- per-frame analysis ---- */
   const adjust = (rate, baseFps, fps) => Math.pow(rate, baseFps / Math.max(1, Math.min(240, fps)));
   AudioEngine.prototype.update = function (time, fps) {
-    const live = this.ctx && ((this.mode === "mic" && this.mic) || (this.mode === "file" && this.file) || (this.mode === "stream" && this.stream && !this.analysisBlocked));
-    if (this.ctx && this.silenced()) {
-      // a muted or paused source is silence, not the demo beat
-      for (let c = 0; c < 2; c++) { this.wave[c].fill(0); this.spec[c].fill(0); }
-    } else if (live) {
+    const live = this.ctx && ((this.mode === "mic" && !(this.mic && this.mic.muted)) || (this.mode === "file" && this.file && this.file.playing) || (this.mode === "stream" && !this.analysisBlocked && !(this.stream && this.stream.paused)));
+    if (live) {
       for (let c = 0; c < 2; c++) {
         this.an[c].getFloatTimeDomainData(this.td[c]);
         this.an[c].getFloatFrequencyData(this.fd[c]);
