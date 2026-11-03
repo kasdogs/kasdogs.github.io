@@ -3166,11 +3166,15 @@ void main(){
     gl.bindSampler(0, null);
   };
 
-  /* ---- streaming primitives (D3D clip coords: y up, MilkDrop top = +1) ---- */
+  /* ---- streaming primitives ----
+   * Coordinates are MilkDrop's 2D drawing space, where PrepareFor2DDrawing's ortho matrix puts y=-1 at the top
+   * and y=+1 at the bottom. Our render targets are stored top-row-first (the comp pass flips them), so that
+   * space maps onto GL clip space unchanged. Hence wave/shape y=0 is the bottom, as presets expect, while the
+   * warp mesh (drawn with y negated, like MilkDrop's) keeps per-pixel y=0 at the top. */
   Engine.prototype.vtx = function (x, y, r, g, b, a, u, v) {
     if (this.sbn > this.sb.length - 8) return;
     const s = this.sb; let i = this.sbn;
-    s[i++] = x; s[i++] = -y; s[i++] = r; s[i++] = g; s[i++] = b; s[i++] = a; s[i++] = u || 0; s[i++] = v || 0;
+    s[i++] = x; s[i++] = y; s[i++] = r; s[i++] = g; s[i++] = b; s[i++] = a; s[i++] = u || 0; s[i++] = v || 0;
     this.sbn = i;
   };
   // Start a primitive of n vertices. Vertices join the pending batch when the draw state matches;
@@ -3433,7 +3437,7 @@ void main(){
       }
     }
     if (alpha < 0.004) return;
-    // MilkDrop flips y here so wave_y=0 is the top
+    // MilkDrop reverses y here "to stay consistent with the pre-VMS milkdrop"
     for (let i = 0; i < n; i++) Y[i] = -Y[i];
     const segs = brk < 0 ? [[0, n]] : [[0, brk], [brk, n]];
     const dots = !!pf.wave_usedots, thick = !!(pf.wave_thick || pf.wave_usedots) && this.W >= 512;
