@@ -389,10 +389,10 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 
   <section class="pane" id="paneAudio" role="tabpanel" aria-labelledby="tabAudio" hidden>
     <div class="seg" role="radiogroup" aria-label="Audio source">
-      <button type="button" role="radio" data-src="demo" aria-checked="true">Demo</button>
-      <button type="button" role="radio" data-src="file" aria-checked="false">File</button>
-      <button type="button" role="radio" data-src="mic" aria-checked="false">Input</button>
+      <button type="button" role="radio" data-src="file" aria-checked="true">File</button>
       <button type="button" role="radio" data-src="stream" aria-checked="false">Stream</button>
+      <button type="button" role="radio" data-src="mic" aria-checked="false">Input</button>
+      <button type="button" role="radio" data-src="demo" aria-checked="false">Demo</button>
     </div>
     <div class="vu" id="vu" hidden aria-hidden="true">
       <div class="vurow"><span class="vulab">L</span><div class="vubar"><i></i><b></b></div></div>
@@ -402,9 +402,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     </div>
     <p class="status" id="audioStatus" role="status">A built-in silent beat drives the visuals.</p>
 
-    <div id="srcDemo" class="field"><p class="note">Pick a source above to visualize your own audio.</p></div>
+    <div id="srcDemo" class="field" hidden><p class="note">Pick a source above to visualize your own audio.</p></div>
 
-    <div id="srcFile" class="field" hidden>
+    <div id="srcFile" class="field">
       <div class="transport" role="group" aria-label="Playback">
         <button type="button" class="icon" id="trkPrev" aria-label="Back" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 3v10M13 3 6 8l7 5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
         <button type="button" class="icon" id="playPause" aria-label="Play" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path class="i-play" d="M4.5 2.5v11l9-5.5z" fill="currentColor"/><path class="i-pause" d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg></button>
@@ -423,7 +423,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <label for="micSel">Input device</label>
       <div class="pick"><select id="micSel" aria-label="Input device"><option value="">System default input</option></select><button type="button" id="micGo">Listen</button></div>
       <label for="micGain">Gain <span class="gainval" id="micGainVal">+0.0 dB</span></label>
-      <div class="volrow"><button type="button" class="icon" id="micMute" aria-label="Mute input" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="6" y="1.5" width="4" height="8" rx="2" fill="currentColor"/><path d="M3.8 7.5a4.2 4.2 0 0 0 8.4 0M8 11.8v2.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="i-off" d="M2.5 2.5l11 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><input type="range" id="micGain" min="-60" max="6" step="0.5" value="0" aria-label="Input gain"></div>
+      <div class="volrow"><button type="button" class="icon" id="micMute" aria-label="Mute input" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="6" y="1.5" width="4" height="8" rx="2" fill="currentColor"/><path d="M3.8 7.5a4.2 4.2 0 0 0 8.4 0M8 11.8v2.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="i-off" d="M2.5 2.5l11 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><input type="range" id="micGain" min="0" max="100" step="0.25" value="70" aria-label="Input gain"></div>
       <p class="note">Device names appear after you allow access the first time. Line-in and loopback devices work too. This input is only analyzed, never played back.</p>
     </div>
 
@@ -2172,7 +2172,7 @@ ${copyInit}  vec2 uv = _uv.xy;
     this.stream = null; // {el, node, url, hls}
     this.analysisBlocked = false;
     this.volume = 1; this.muted = false;
-    this.micGainDb = 0; // input sensitivity, -Infinity..+6 dB
+    this.micGainDb = 0; // input sensitivity, -Infinity..+12 dB
   }
   AudioEngine.prototype.on = function (fn) { this.listeners.add(fn); };
   AudioEngine.prototype.emit = function () { for (const fn of this.listeners) try { fn(this); } catch (e) { console.error(e); } };
@@ -4846,7 +4846,7 @@ void main(){
 
   /* ---------------- audio UI ---------------- */
   const srcPanes = {demo: "#srcDemo", file: "#srcFile", mic: "#srcMic", stream: "#srcStream"};
-  let shownSrc = "demo";
+  let shownSrc = "file";
   function showSrc(k) {
     shownSrc = k;
     for (const b of document.querySelectorAll(".seg [data-src]")) b.setAttribute("aria-checked", String(b.dataset.src === k));
@@ -4856,6 +4856,7 @@ void main(){
     if (k === "mic") refreshDevices();
   }
   for (const b of document.querySelectorAll(".seg [data-src]")) b.addEventListener("click", () => showSrc(b.dataset.src));
+  showSrc("file"); // the File tab is what the Audio panel opens to; the demo beat runs until something plays
   audio.on(() => { $("#audioStatus").textContent = audio.status || ""; syncAudioUI(); });
   function syncAudioUI() {
     // file transport
@@ -4979,17 +4980,20 @@ void main(){
   audio.shuffle = !!LS.get("shuffleTracks", false);
   function togglePlay() { if (audio.queue.length) { if (audio.mode !== "file") showSrc("file"); audio.togglePlay(); } }
   $("#micMute").addEventListener("click", () => { if (audio.mic) audio.setMicMuted(!audio.mic.muted); });
-  // input gain (sensitivity): -60 on the slider means silence (-inf dB), up to +6 dB
-  function setMicGain(v, save) {
-    const db = v <= -60 ? -Infinity : v;
+  // input gain (sensitivity): -inf to +12 dB. 0 dB sits at 70% of the slider; above it the scale is 12 dB over
+  // the last 30%, below it 60 dB over the next 69%, and the very bottom is silence.
+  const gainToPos = (db) => (db === -Infinity ? 0 : db >= 0 ? 70 + db / 12 * 30 : Math.max(1, 70 + db * 69 / 60));
+  const posToGain = (p) => (p <= 0.5 ? -Infinity : p >= 70 ? (p - 70) / 30 * 12 : Math.max(-60, (p - 70) * 60 / 69));
+  function setMicGain(db, save) {
+    db = db === -Infinity ? db : Math.max(-60, Math.min(12, db));
     audio.setMicGain(db);
-    $("#micGain").value = String(Math.max(-60, Math.min(6, v)));
-    $("#micGainVal").textContent = db === -Infinity ? "\u2212\u221e dB" : (db > 0 ? "+" : db < 0 ? "\u2212" : "+") + Math.abs(db).toFixed(1) + " dB";
-    if (save) LS.set("micGain", v);
+    $("#micGain").value = String(gainToPos(db));
+    $("#micGainVal").textContent = db === -Infinity ? "\u2212\u221e dB" : (db < -0.05 ? "\u2212" : "+") + Math.abs(db).toFixed(1) + " dB";
+    if (save) LS.set("micGain", db === -Infinity ? null : db);
   }
-  $("#micGain").addEventListener("input", () => setMicGain(+$("#micGain").value, true));
+  $("#micGain").addEventListener("input", () => setMicGain(posToGain(+$("#micGain").value), true));
   $("#micGain").addEventListener("dblclick", () => setMicGain(0, true)); // double-click resets to 0 dB
-  setMicGain(+LS.get("micGain", 0) || 0, false);
+  { const g = LS.get("micGain", 0); setMicGain(g === null ? -Infinity : (+g || 0), false); }
   $("#streamPause").addEventListener("click", () => audio.toggleStream());
 
   async function refreshDevices() {
