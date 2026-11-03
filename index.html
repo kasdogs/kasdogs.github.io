@@ -4983,17 +4983,17 @@ void main(){
   // input gain (sensitivity): -inf to +12 dB. 0 dB sits at 70% of the slider; above it the scale is 12 dB over
   // the last 30%, below it 60 dB over the next 69%, and the very bottom is silence.
   const gainToPos = (db) => (db === -Infinity ? 0 : db >= 0 ? 70 + db / 12 * 30 : Math.max(1, 70 + db * 69 / 60));
-  const posToGain = (p) => (p <= 0.5 ? -Infinity : p >= 70 ? (p - 70) / 30 * 12 : Math.max(-60, (p - 70) * 60 / 69));
-  function setMicGain(db, save) {
+  // gain moves in 0.5 dB steps
+  const posToGain = (p) => (p <= 0.5 ? -Infinity : Math.round((p >= 70 ? (p - 70) / 30 * 12 : Math.max(-60, (p - 70) * 60 / 69)) * 2) / 2);
+  function setMicGain(db) {
     db = db === -Infinity ? db : Math.max(-60, Math.min(12, db));
     audio.setMicGain(db);
     $("#micGain").value = String(gainToPos(db));
     $("#micGainVal").textContent = db === -Infinity ? "\u2212\u221e dB" : (db < -0.05 ? "\u2212" : "+") + Math.abs(db).toFixed(1) + " dB";
-    if (save) LS.set("micGain", db === -Infinity ? null : db);
   }
-  $("#micGain").addEventListener("input", () => setMicGain(posToGain(+$("#micGain").value), true));
-  $("#micGain").addEventListener("dblclick", () => setMicGain(0, true)); // double-click resets to 0 dB
-  { const g = LS.get("micGain", 0); setMicGain(g === null ? -Infinity : (+g || 0), false); }
+  $("#micGain").addEventListener("input", () => setMicGain(posToGain(+$("#micGain").value)));
+  $("#micGain").addEventListener("dblclick", () => setMicGain(0)); // double-click resets to 0 dB
+  setMicGain(0); // every page load starts at 0 dB
   $("#streamPause").addEventListener("click", () => audio.toggleStream());
 
   async function refreshDevices() {
