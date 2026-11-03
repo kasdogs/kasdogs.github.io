@@ -32,8 +32,8 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
-/* set zoom amount to scale UI elements*/
-.hud,.bar,.drawer,.keysBtn,.keyspanel,.toast,.drop{zoom:.8}
+/* every overlay is drawn at 85% size; the canvas stays full-bleed */
+.hud,.bar,.drawer,.keysBtn,.keyspanel,.toast,.drop{zoom:.85}
 html,body{height:100%}
 body{margin:0}
 body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--mono);font-size:13px;
