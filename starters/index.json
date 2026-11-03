@@ -1,12 +1,13 @@
 {
  "presets": [
   "Aderrasi + Flexi - Airhandler (Last Breath - Calm) [moebius morbid vision edit].milk",
-  "Aderrasi - Potion of Spirits.milk",
   "baked - mushroom rainbows[acid Storm].milk",
   "fiShbRaiN + geiss - witchcraft (Stahl's Mirror Crossfire Mix).milk",
   "Flexi - smashing fractals [acid etching mix].milk",
   "Geiss - Brain Zoom 4 (Jelly).milk",
   "Geiss - Cosmic Dust 2 - Tiny Reaction Diffusion Mix.milk",
-  "Geiss and Zylot - Reaction Diffusion 3 (Overload Mix 2).milk"
- ]
+  "Geiss and Zylot - Reaction Diffusion 3 (Overload Mix 2).milk",
+  "shifter - lazerspecs_phat_edit.milk"
+ ],
+ "default": "Aderrasi + Flexi - Airhandler (Last Breath - Calm) [moebius morbid vision edit]"
 }
