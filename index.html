@@ -296,9 +296,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <summary>Display</summary>
       <div class="row">
         <label class="note" for="quality">Quality</label>
-        <select id="quality"><option value="auto">Auto</option><option value="high">High</option><option value="low">Low</option></select>
+        <select id="quality"><option value="high">High</option><option value="low">Low</option></select>
       </div>
-      <p class="note" id="qualityNote">Auto lowers the render resolution when frames start to drop and raises it again when there's headroom. Frame rate is capped near 60.</p>
+      <p class="note" id="qualityNote">Low renders at 60% resolution for slower devices. Frame rate is capped near 60.</p>
     </details>
     <details>
       <summary>Library storage</summary>
@@ -3903,7 +3903,7 @@ void main(){
     $("#src").textContent = src;
     const st = engine.latest();
     const issues = st ? st.errors.length + engine.missingTextures.size : 0;
-    $("#meters").innerHTML = "bass <b>" + audio.immRel[0].toFixed(2) + "</b> · mid <b>" + audio.immRel[1].toFixed(2) + "</b> · treb <b>" + audio.immRel[2].toFixed(2) + "</b> · " + Math.round(engine.fps) + " fps" + (resScale() < 1 ? " · " + Math.round(resScale() * 100) + "% res" : "")
+    $("#meters").innerHTML = "bass <b>" + audio.immRel[0].toFixed(2) + "</b> · mid <b>" + audio.immRel[1].toFixed(2) + "</b> · treb <b>" + audio.immRel[2].toFixed(2) + "</b> · " + Math.round(engine.fps) + " fps"
       + (st && st.spec.isMash ? '<span class="tag mash">mash-up</span>' : "") + (locked ? '<span class="tag">locked</span>' : "") + (issues ? '<span class="tag warn">' + issues + (issues === 1 ? " issue" : " issues") + "</span>" : "");
   }
   function updateIssues() {
@@ -4479,14 +4479,12 @@ void main(){
 
   /* ---------------- render loop ---------------- */
   let last = performance.now(), hudClock = 0;
-  // Quality: High renders at up to 1280 px on the long side; Low at 60% of that; Auto moves between
-  // 50% and 100% depending on whether frames are being missed.
-  const SCALES = [1, 0.85, 0.72, 0.6, 0.5];
-  const perf = {mode: LS.get("quality", "auto"), step: 0, slow: 0, frames: 0, calm: 0, cooldown: 0, cpu: 0};
-  if (!["auto", "high", "low"].includes(perf.mode)) perf.mode = "auto";
-  const resScale = () => (perf.mode === "high" ? 1 : perf.mode === "low" ? 0.6 : SCALES[perf.step]);
-  $("#quality").value = perf.mode;
-  $("#quality").addEventListener("change", (e) => { perf.mode = e.target.value; perf.step = 0; perf.slow = perf.frames = perf.calm = 0; LS.set("quality", perf.mode); });
+  // Quality: High renders at up to 1280 px on the long side; Low at 60% of that.
+  const quality = {mode: LS.get("quality", "high")};
+  if (!["high", "low"].includes(quality.mode)) quality.mode = "high";
+  const resScale = () => (quality.mode === "low" ? 0.6 : 1);
+  $("#quality").value = quality.mode;
+  $("#quality").addEventListener("change", (e) => { quality.mode = e.target.value; LS.set("quality", quality.mode); });
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let w = canvas.clientWidth * dpr, h = canvas.clientHeight * dpr;
@@ -4506,25 +4504,6 @@ void main(){
       pace.ivals.length = 0;
     }
   }
-  // Auto quality: count frames that arrive late. Only lower the resolution when the JS work is small,
-  // i.e. the GPU (pixels) is the likely bottleneck; resolution can't fix slow preset equations.
-  function adapt(interval, cpuMs) {
-    if (perf.mode !== "auto" || document.hidden) return;
-    const target = pace.refresh * pace.div;
-    perf.frames++; perf.cpu += cpuMs;
-    if (interval > target * 1.45) perf.slow++;
-    if (perf.cooldown > 0) perf.cooldown--;
-    if (perf.frames < 60) return;
-    const slowFrac = perf.slow / perf.frames, cpuAvg = perf.cpu / perf.frames;
-    perf.slow = perf.frames = 0; perf.cpu = 0;
-    if (slowFrac > 0.08 && cpuAvg < target * 0.5) {
-      perf.calm = 0;
-      if (perf.cooldown === 0 && perf.step < SCALES.length - 1) { perf.step++; perf.cooldown = 120; }
-    } else if (slowFrac < 0.02) {
-      // raise again after ~5 s of smooth frames
-      if (++perf.calm >= 5 && perf.step > 0 && perf.cooldown === 0) { perf.step--; perf.calm = 0; perf.cooldown = 120; }
-    } else perf.calm = 0;
-  }
   function frame(now) {
     requestAnimationFrame(frame);
     measureRefresh(now);
@@ -4533,9 +4512,7 @@ void main(){
     const interval = now - last;
     sizeCanvas();
     const dt = Math.min(0.1, Math.max(0, interval / 1000)); last = now;
-    const t0 = performance.now();
     try { engine.render(audio, dt); } catch (e) { console.error(e); }
-    adapt(interval, performance.now() - t0);
     if (autoMash.on) { if (!locked && now / 1000 > autoMash.next && lib.length > 1) autoMashTick(); }
     else if (!locked && settings.autoOn && now / 1000 > nextAt && lib.length > 1) goNext();
     hudClock += dt;
