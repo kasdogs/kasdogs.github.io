@@ -329,7 +329,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <button type="button" id="addTex">Add textures</button>
     </div>
     <p class="count" id="libCount"></p>
-    <input type="search" id="search" placeholder="Search presets" aria-label="Search presets" autocomplete="off">
+    <input type="search" id="search" placeholder="Search: words in any order, &quot;phrase&quot;, -exclude" aria-label="Search presets" autocomplete="off">
     <div class="list" id="presetList" tabindex="0" aria-label="Preset list"><div class="spacer"></div></div>
     <div class="box">
       <button type="button" class="switch" role="switch" id="autoAdv" aria-checked="false"><span class="track"></span><span>Auto-advance</span></button>
@@ -382,7 +382,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       </div>
       <p class="note">Preset auto-advance pauses while this is on.</p>
     </div>
-    <input type="search" id="mashSearch" placeholder="Filter presets for this element" aria-label="Filter presets for this element" autocomplete="off">
+    <input type="search" id="mashSearch" placeholder="Filter: words in any order, &quot;phrase&quot;, -exclude" aria-label="Filter presets for this element" autocomplete="off">
     <div class="list" id="mashList" tabindex="0" aria-label="Presets for the selected element"><div class="spacer"></div></div>
     <p class="kbd"><b>1–5</b> change element · <b>↑ ↓ PgUp PgDn Home End a–z</b> browse · <b>G</b> randomize element · <b>H</b> all elements · <b>Esc</b> exits</p>
   </section>
@@ -4503,11 +4503,92 @@ void main(){
   };
   const presetList = new VList($("#presetList"), (i) => load(i));
   const mashList = new VList($("#mashList"), (i) => { mash.slots[mash.active] = i; applyMash(); mashList.set(mashList.data, i); });
+  /* ---- preset search ----
+   * Words match in any order and all must match (AND), as substrings, ignoring case, accents and punctuation:
+   * "geiss tokamak", "eos phat", "royal 157". "quoted words" must appear as a phrase; -word excludes.
+   * Results are ranked (whole words and word starts first, then earlier/shorter names); ties keep list order,
+   * so favorites stay ahead. If nothing matches, a typo-tolerant fuzzy pass runs instead ("tokamk", "fractl"). */
+  const fold = (t) => t.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+  function searchKey(it) {
+    if (it._sk && it._sk.name === it.name) return it._sk;
+    const f = fold(it.name);
+    const words = f.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    return (it._sk = {name: it.name, spaced: " " + words.join(" ") + " ", compact: words.join(""), words});
+  }
+  function parseQuery(q) {
+    const terms = [];
+    const re = /(-?)"([^"]*)"?|(-?)(\S+)/g;
+    let m;
+    while ((m = re.exec(q))) {
+      const neg = !!(m[1] || m[3]), raw = m[2] !== undefined ? m[2] : m[4];
+      const words = fold(raw).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+      if (!words.length) continue;
+      if (m[2] !== undefined) terms.push({neg, phrase: true, text: words.join(" "), compact: words.join("")});
+      else for (const w of words) terms.push({neg, phrase: false, text: w, compact: w});
+    }
+    return terms;
+  }
+  // exact score for one term, or -1: whole word > word start > inside a word > across punctuation ("eos" in "Eo.S.")
+  function termScore(k, t) {
+    const sp = k.spaced;
+    if (sp.includes(" " + t.text + " ")) return 4;
+    const at = sp.indexOf(" " + t.text);
+    if (at >= 0) return 3 - Math.min(1, at / 400);
+    if (!t.phrase && sp.includes(t.text)) return 2;
+    if (k.compact.includes(t.compact)) return 1;
+    return -1;
+  }
+  function editWithin(a, b, max) { // Levenshtein distance <= max
+    if (Math.abs(a.length - b.length) > max) return false;
+    let prev = Array.from({length: b.length + 1}, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i]; let best = i;
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return false;
+      prev = cur;
+    }
+    return prev[b.length] <= max;
+  }
+  function fuzzyScore(k, t) {
+    const w = t.compact;
+    if (w.length < 3) return -1;
+    const max = w.length >= 7 ? 2 : 1;
+    // a typo in one word, or in that many leading letters of a word ("tokamk" ~ "tokamak", "fractl" ~ "fractals")
+    for (const word of k.words) {
+      if (editWithin(w, word, max) || (word.length > w.length && editWithin(w, word.slice(0, w.length + 1), max))) return 0.8;
+    }
+    // letters in order, close together ("pltry" ~ "planetary")
+    const c = k.compact;
+    for (let s = c.indexOf(w[0]); s >= 0; s = c.indexOf(w[0], s + 1)) {
+      let j = 1, e = s + 1;
+      for (; e < c.length && j < w.length && e - s <= w.length * 2 + 1; e++) if (c[e] === w[j]) j++;
+      if (j === w.length) return 0.5;
+    }
+    return -1;
+  }
   function filtered(q) {
-    q = (q || "").trim().toLowerCase();
-    const out = [];
-    for (let i = 0; i < lib.length; i++) if (!q || lib[i].name.toLowerCase().includes(q)) out.push(i);
-    return out;
+    const terms = parseQuery(q || "");
+    if (!terms.length) return lib.map((_, i) => i);
+    const pos = terms.filter((t) => !t.neg), neg = terms.filter((t) => t.neg);
+    const run = (scoreFn) => {
+      const hits = [];
+      for (let i = 0; i < lib.length; i++) {
+        const k = searchKey(lib[i]);
+        if (neg.some((t) => termScore(k, t) >= 0)) continue;
+        let total = 0, ok = true;
+        for (const t of pos) { const sc = scoreFn(k, t); if (sc < 0) { ok = false; break; } total += sc; }
+        // with only exclusions there's nothing to rank: keep the list order (favorites first)
+        if (ok) hits.push({i, total: pos.length ? total - Math.min(0.5, k.spaced.length / 600) : 0});
+      }
+      hits.sort((a, b) => b.total - a.total || a.i - b.i);
+      return hits.map((h) => h.i);
+    };
+    const exact = run(termScore);
+    if (exact.length || !pos.length) return exact;
+    return run((k, t) => { const e = termScore(k, t); return e >= 0 ? e : fuzzyScore(k, t); });
   }
   function texLine() {
     const site = siteTex.names.size, mine = Math.max(0, engine.userTextures.size - site);
