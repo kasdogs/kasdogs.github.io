@@ -9,7 +9,6 @@
 </head>
 <body>
 <title>kas.dog</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -4097,18 +4096,12 @@ void main(){
     addPreset(name, text, false); sortLib();
     if (settings.keep) DB.put("presets", [{key: name.toLowerCase(), name, text}]);
     refreshLists();
-    // inside Claude's artifact viewer, downloads go through its save dialog; elsewhere a normal download link
-    const viewer = window.claude && window.claude.use ? window.claude.use("downloads") : null;
-    if (viewer) { viewer.then((dl) => { if (dl) return dl.save({filename: name + ".milk", data: text}); plainDownload(); }).catch(() => {}); }
-    else plainDownload();
-    function plainDownload() {
     try {
       const url = URL.createObjectURL(new Blob([text], {type: "application/octet-stream"}));
       const a = document.createElement("a"); a.href = url; a.download = name + ".milk";
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (e) {}
-    }
     const msg = "Saved \u201c" + name + "\u201d to your presets and downloaded it.";
     $("#exportNote").textContent = ""; toast(msg, "info", 7000);
   }
