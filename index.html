@@ -20,8 +20,8 @@
   --bg:#03040a;
   --ink:#dce6f2;
   --dim:#8794a9;
-  --glass:rgba(9,12,22,.72);
-  --panel:rgba(8,11,20,.9);
+  --glass:rgba(9,12,22,.84);
+  --panel:rgba(8,11,20,.95);
   --line:rgba(150,180,225,.2);
   --accent:#86c8ff;
   --accent-ink:#04101c;
@@ -65,12 +65,12 @@ body.idle .hudToggle{pointer-events:none}
 .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
 button,select,input[type=text],input[type=url],input[type=search]{font:500 11.5px/1.2 var(--mono);color:var(--ink);background:var(--glass);
   border:1px solid var(--line);border-radius:3px;padding:8px 11px}
-button{cursor:pointer;letter-spacing:.06em;text-transform:uppercase;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+button{cursor:pointer;letter-spacing:.06em;text-transform:uppercase;}
 button:hover:not(:disabled){border-color:var(--accent)}
 button:disabled{opacity:.45;cursor:default}
 button[aria-pressed="true"],button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button.quiet{text-transform:none;letter-spacing:0;background:transparent}
-.switch{display:inline-flex;align-items:center;gap:10px;text-transform:none;letter-spacing:0;background:transparent;border:0;padding:6px 0;font-weight:400;-webkit-backdrop-filter:none;backdrop-filter:none}
+.switch{display:inline-flex;align-items:center;gap:10px;text-transform:none;letter-spacing:0;background:transparent;border:0;padding:6px 0;font-weight:400;}
 .switch .track{width:34px;height:18px;border-radius:9px;background:transparent;box-shadow:inset 0 0 0 1px rgba(150,180,225,.45);position:relative;flex:0 0 auto;transition:background .2s}
 .switch .track::after{content:"";position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--dim);transition:transform .2s}
 .switch[aria-checked="true"] .track{background:var(--accent);box-shadow:none}
@@ -109,10 +109,10 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 
 /* drawer */
 .drawer{position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);right:max(12px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 86px);
-  width:min(400px,calc(100vw - 24px));background:var(--panel);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  width:min(400px,calc(100vw - 24px));background:var(--panel);
   border:1px solid var(--line);border-radius:5px;display:flex;flex-direction:column;min-height:0;z-index:5}
 .tabs{display:flex;border-bottom:1px solid var(--line)}
-.tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:12px 4px;border-bottom:2px solid transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+.tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:12px 4px;border-bottom:2px solid transparent;}
 .tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:var(--accent);background:transparent}
 .tabs .close{flex:0 0 auto;padding:12px 14px;text-transform:none;font-size:16px;line-height:1}
 .pane{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:14px;overflow:auto}
@@ -145,7 +145,7 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .kbd b{color:var(--ink);font-weight:500}
 
 .seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
-.seg button{flex:1;border:0;border-radius:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;padding:9px 4px}
+.seg button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 4px}
 .seg button + button{border-left:1px solid var(--line)}
 .field{display:grid;gap:5px;min-width:0}
 .field label{font-size:11px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
@@ -166,7 +166,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 body.idle .keysBtn{opacity:0;pointer-events:none}
 .keyspanel{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 56px);right:max(12px,env(safe-area-inset-right,0px));
   width:min(420px,calc(100vw - 24px));max-height:calc(100% - 150px);overflow:auto;background:var(--panel);
-  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:5px;padding:14px;display:grid;gap:10px}
+  border:1px solid var(--line);border-radius:5px;padding:14px;display:grid;gap:10px}
 .sec{width:5.5em!important;text-align:right;font-variant-numeric:tabular-nums}
 .keys{font-size:12.5px;line-height:1.5}
 .keys dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
@@ -293,6 +293,14 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <ul class="issues" id="issues"></ul>
     </div>
     <details>
+      <summary>Display</summary>
+      <div class="row">
+        <label class="note" for="quality">Quality</label>
+        <select id="quality"><option value="auto">Auto</option><option value="high">High</option><option value="low">Low</option></select>
+      </div>
+      <p class="note" id="qualityNote">Auto lowers the render resolution when frames start to drop and raises it again when there's headroom. Frame rate is capped near 60.</p>
+    </details>
+    <details>
       <summary>Library storage</summary>
       <button type="button" class="switch" role="switch" id="keepLib" aria-checked="true"><span class="track"></span><span>Keep my library in this browser</span></button>
       <p class="note" id="keepNote">Presets and textures you add are saved here so they're back next time.</p>
@@ -392,7 +400,8 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 <script>
 /* ---- eel.js ---- */
 /* EEL expression compiler (MilkDrop 2 dialect, ns-eel).
- * Compiles preset code into JS closures. No eval / new Function, so it runs under a strict CSP.
+ * Compiles preset code to native JS (new Function) for speed. If the page's CSP blocks that,
+ * it falls back to a closure tree, which gives the same results more slowly.
  *
  * Semantics follow MilkDrop 2's ns-eel:
  *   - identifiers are case-insensitive
@@ -632,7 +641,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
           case "+": return () => a() + b();
           case "-": return () => a() - b();
           case "*": return () => a() * b();
-          case "/": return () => { const d = b(); return d === 0 ? 0 : a() / d; };
+          case "/": return () => { const n = a(), d = b(); return d === 0 ? 0 : n / d; };
           case "&&": return () => (tru(a()) && tru(b()) ? 1 : 0);
           case "||": return () => (tru(a()) || tru(b()) ? 1 : 0);
           default: { const f = bin[node.op]; return () => f(a(), b()); }
@@ -698,6 +707,110 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   }
   function pad(arr, n) { const out = arr.slice(0, n); while (out.length < n) out.push(() => 0); return out; }
 
+
+  /* ---------- native JS generator ---------- */
+  // Every EEL variable becomes a JS local, loaded from the vars object on entry and written back on exit.
+  const H = {
+    tru, toInt, mi: memIndex,
+    div: (a, b) => (b === 0 ? 0 : a / b),
+    mod: bin["%"], bor: bin["|"], band: bin["&"],
+    eq: (a, b) => (Math.abs(a - b) < CLOSE ? 1 : 0), ne: (a, b) => (Math.abs(a - b) < CLOSE ? 0 : 1),
+    rd: (m, i) => (i < 0 ? 0 : m()[i]),
+    wr: (m, i, x) => (i < 0 ? x : (m()[i] = x)),
+    wrf: (m, i, x, f) => { if (i < 0) return x; const a = m(); return (a[i] = f(a[i], x)); },
+    loop: (n, body) => { let r = 0; const c = Math.min(LOOP_MAX, Math.floor(n)); for (let i = 0; i < c; i++) r = body(); return r; },
+    wh: (body) => { let r, i = 0; do { r = body(); } while (tru(r) && ++i < LOOP_MAX); return r; },
+    memset: null, memcpy: null, FN1, FN2, bin
+  };
+  const MATH1 = {sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1, exp: 1, abs: 1, floor: 1, ceil: 1};
+  const MATH2 = {atan2: 1, pow: 1, min: 1, max: 1};
+  const OPNAME = {"%": "mod", "|": "bor", "&": "band", "==": "eq", "!=": "ne", "/": "div"};
+
+  function genJS(ast, warn) {
+    const names = new Map();
+    const local = (n) => { if (!names.has(n)) names.set(n, "v" + names.size); return names.get(n); };
+    function e(node) {
+      switch (node.k) {
+        case "num": { const c = node.v; return Number.isFinite(c) ? "(" + c + ")" : (c !== c ? "NaN" : c > 0 ? "Infinity" : "(-Infinity)"); }
+        case "var": return local(node.name);
+        case "seq": return "(" + node.items.map(e).join(",") + ")";
+        case "neg": return "(-" + e(node.a) + ")";
+        case "not": return "(H.tru(" + e(node.a) + ")?0:1)";
+        case "bnotint": return "(~H.toInt(" + e(node.a) + "))";
+        case "if": return "(H.tru(" + e(node.c) + ")?" + e(node.a) + ":" + e(node.b) + ")";
+        case "bin": {
+          const a = e(node.a), b = e(node.b), op = node.op;
+          if (op === "+" || op === "-" || op === "*") return "(" + a + op + b + ")";
+          if (op === "&&") return "(H.tru(" + a + ")&&H.tru(" + b + ")?1:0)";
+          if (op === "||") return "(H.tru(" + a + ")||H.tru(" + b + ")?1:0)";
+          if (op === "<" || op === ">" || op === "<=" || op === ">=") return "(" + a + op + b + "?1:0)";
+          if (op === "^") return "Math.pow(" + a + "," + b + ")";
+          return "H." + OPNAME[op] + "(" + a + "," + b + ")";
+        }
+        case "mem": return "H.rd(" + (node.g ? "G" : "M") + ",H.mi(" + e(node.idx) + "))";
+        case "assign": {
+          const op = node.op, val = e(node.val);
+          if (node.target.k === "var") {
+            const L = local(node.target.name);
+            if (op === "=") return "(" + L + "=" + val + ")";
+            if (op === "+=" || op === "-=" || op === "*=") return "(" + L + op + val + ")";
+            if (op === "^=") return "(" + L + "=Math.pow(" + L + "," + val + "))";
+            return "(" + L + "=H." + OPNAME[op.slice(0, -1)] + "(" + L + "," + val + "))";
+          }
+          const m = node.target.g ? "G" : "M", idx = "H.mi(" + e(node.target.idx) + ")";
+          if (op === "=") return "H.wr(" + m + "," + idx + "," + val + ")";
+          return "H.wrf(" + m + "," + idx + "," + val + ",H.bin[" + JSON.stringify(op.slice(0, -1)) + "])";
+        }
+        case "call": {
+          const name = node.f, A = node.args.map(e);
+          const arg = (i) => (i < A.length ? A[i] : "0");
+          const extra = (n) => (A.length > n ? A.slice(n) : []);
+          // arguments beyond what a function takes are still evaluated, as in the closure version (they are dropped there too)
+          const wrap = (expr, n) => { const x = extra(n); return x.length ? "(" + expr + ")" : expr; };
+          if (name === "if") return "(H.tru(" + arg(0) + ")?" + arg(1) + ":" + arg(2) + ")";
+          if (name === "loop") return "H.loop(" + arg(0) + ",()=>" + arg(1) + ")";
+          if (name === "while") return "H.wh(()=>" + arg(0) + ")";
+          if (name === "exec2" || name === "exec3") return A.length ? "(" + A.join(",") + ")" : "0";
+          if (name === "freembuf") return arg(0);
+          if (name === "memset") return "H.memset(M," + arg(0) + "," + arg(1) + "," + arg(2) + ")";
+          if (name === "memcpy") return "H.memcpy(M," + arg(0) + "," + arg(1) + "," + arg(2) + ")";
+          if (MATH1[name]) return "Math." + name + "(" + arg(0) + ")";
+          if (MATH2[name]) return "Math." + name + "(" + arg(0) + "," + arg(1) + ")";
+          if (name === "int") return "Math.floor(" + arg(0) + ")";
+          if (name === "sqr") return "((t=" + arg(0) + ")*t)";
+          if (FN1[name]) return "H.FN1." + name + "(" + arg(0) + ")";
+          if (FN2[name]) return "H.FN2." + name + "(" + arg(0) + "," + arg(1) + ")";
+          warn && warn("Unknown function '" + name + "'");
+          return "(" + A.concat(["0"]).join(",") + ")";
+        }
+      }
+      throw new Error("Bad node " + node.k);
+    }
+    const body = e(ast);
+    return {body, names};
+  }
+  H.memset = (M, d, val, len) => { const s = memIndex(d), L = Math.floor(len); if (s >= 0) M().fill(val, s, Math.min(MEGABUF_SIZE, s + Math.max(0, L))); return s; };
+  H.memcpy = (M, d, s, len) => { const di = memIndex(d), si = memIndex(s), L = Math.floor(len); if (di >= 0 && si >= 0 && L > 0) M().copyWithin(di, si, Math.min(MEGABUF_SIZE, si + L)); return di; };
+
+  let nativeOK = null;
+  function canNative() {
+    if (nativeOK === null) { try { nativeOK = new Function("return 1")() === 1; } catch (e) { nativeOK = false; } }
+    return nativeOK;
+  }
+  function bindNative(ast, vars, ctx, warn) {
+    const {body, names} = genJS(ast, warn);
+    const load = [], store = [];
+    for (const [n, L] of names) {
+      if (!(n in vars)) vars[n] = 0;
+      const key = JSON.stringify(n);
+      load.push(L + "=V[" + key + "]"); store.push("V[" + key + "]=" + L);
+    }
+    const src = '"use strict";let t' + (load.length ? "," + load.join(",") : "") + ";\ntry{return " + body + ";}finally{" + store.join(";") + "}";
+    const f = new Function("V", "M", "G", "H", src);
+    const M = ctx.mem, G = ctx.gmem;
+    return () => f(vars, M, G, H);
+  }
+
   function usesMem(node) {
     let found = false;
     (function walk(n) {
@@ -720,6 +833,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       ok: true, empty: false, ast, usesMem: usesMem(ast),
       bind(vars, memCtx, warn) {
         const ctx = {v: vars, mem: memCtx ? memCtx.mem : globalMem, gmem: memCtx ? memCtx.gmem : globalMem};
+        if (EEL.mode !== "closure" && canNative()) {
+          try { return bindNative(ast, vars, ctx, warn); } catch (e) { /* fall through to closures */ }
+        }
         return gen(ast, ctx, warn);
       }
     };
@@ -731,7 +847,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     return {mem: () => buf || (buf = new Float64Array(MEGABUF_SIZE)), gmem: globalMem};
   }
 
-  const EEL = {compile, parse, tokenize, newMemContext};
+  const EEL = {compile, parse, tokenize, newMemContext, mode: "auto", canNative};
   if (typeof module !== "undefined" && module.exports) module.exports = EEL;
   root.EEL = EEL;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -2333,6 +2449,10 @@ void main(){
   }
   const ROT_INDEX = {s: 0, d: 4, f: 8, vf: 12, uf: 16, rand: 20};
 
+  const QN = []; for (let i = 1; i <= 32; i++) QN.push("q" + i);
+  const TN = []; for (let i = 1; i <= 8; i++) TN.push("t" + i);
+  const PV_RO = ["time", "fps", "frame", "progress", "bass", "mid", "treb", "bass_att", "mid_att", "treb_att", "meshx", "meshy", "pixelsx", "pixelsy", "aspectx", "aspecty"];
+
   /* ======================= preset state (CState) ======================= */
   // parts: {general, motion, wave, warp, comp} - each a parsed preset (MILK.parse result)
   function buildSpec(parts) {
@@ -2359,7 +2479,7 @@ void main(){
       this.rotSpeed.push([(Math.random() * 2 - 1) * rm, (Math.random() * 2 - 1) * rm, (Math.random() * 2 - 1) * rm]);
     }
     this.compileCode();
-    this.compileShaders();
+    this.startShaders();
   }
   State.prototype.warnFor = function (where) { return (msg) => this.errors.push(where + ": " + msg); };
   State.prototype.compileCode = function () {
@@ -2443,7 +2563,7 @@ void main(){
   State.prototype.runPerFrame = function (ctx) {
     const pf = this.pf;
     this.loadPerFrameVars(ctx);
-    for (let i = 1; i <= 32; i++) pf["q" + i] = this.qInit[i - 1];
+    for (let i = 0; i < 32; i++) pf[QN[i]] = this.qInit[i];
     pf.monitor = this.monitorInit;
     if (this.frameFn) try { this.frameFn(); } catch (e) { this.errors.push("per_frame: " + e.message); this.frameFn = null; }
     this.monitorInit = pf.monitor;
@@ -2451,34 +2571,33 @@ void main(){
     pf.echo_zoom = Math.max(0.001, Math.min(1000, pf.echo_zoom));
     // read-only per-vertex vars, once per frame
     const pv = this.pv;
-    for (const k of ["time", "fps", "frame", "progress", "bass", "mid", "treb", "bass_att", "mid_att", "treb_att", "meshx", "meshy", "pixelsx", "pixelsy", "aspectx", "aspecty"]) pv[k] = pf[k];
-    for (let i = 1; i <= 32; i++) pv["q" + i] = pf["q" + i];
+    for (let k = 0; k < PV_RO.length; k++) pv[PV_RO[k]] = pf[PV_RO[k]];
+    for (let i = 0; i < 32; i++) pv[QN[i]] = pf[QN[i]];
   };
 
-  /* ---- shaders ---- */
-  State.prototype.compileShaders = function () {
-    const e = this.engine, gl = e.gl, s = this.spec;
-    this.warpProg = null; this.compProg = null;
-    const build = (kind) => {
-      const src = s[kind];
-      if (!(src.ps > 0)) return null;
-      const key = kind + "\u0000" + src.text;
-      if (e.shaderCache.has(key)) { const c = e.shaderCache.get(key); if (c.error) this.errors.push(kind + " shader: " + c.error); return c.prog; }
-      let res = null;
-      const tr = HLSL.translate(src.text, kind);
-      if (!tr.ok) res = {prog: null, error: tr.error};
-      else {
-        try {
-          const prog = compileProgram(gl, VS_MESH, tr.glsl);
-          res = {prog: {program: prog, uniforms: uniforms(gl, prog), tr}, error: null};
-        } catch (err) { res = {prog: null, error: String(err.message).split("\n").filter(Boolean)[0]}; }
-      }
-      e.shaderCache.set(key, res);
-      if (res.error) this.errors.push(kind + " shader: " + res.error + " (using MilkDrop's built-in " + kind + " instead)");
-      return res.prog;
-    };
-    this.warpProg = build("warp");
-    this.compProg = build("comp");
+  /* ---- shaders ----
+   * Compiling happens in two steps so a new preset never stalls the frame it is chosen on:
+   * startShaders() hands the GLSL to the driver, which (with KHR_parallel_shader_compile) compiles it
+   * on its own threads while the current preset keeps playing; the engine switches over once it's done. */
+  State.prototype.startShaders = function () {
+    const e = this.engine, s = this.spec;
+    this.warpProg = null; this.compProg = null; this.blurLevel = 0;
+    this.entries = {};
+    for (const kind of ["warp", "comp"]) if (s[kind].ps > 0) this.entries[kind] = e.shaderEntry(kind, s[kind].text);
+  };
+  State.prototype.shadersReady = function () {
+    for (const k in this.entries) if (!this.engine.entryReady(this.entries[k])) return false;
+    return true;
+  };
+  State.prototype.finishShaders = function () {
+    if (this.shadersDone) return;
+    this.shadersDone = true;
+    for (const kind in this.entries) {
+      const en = this.entries[kind];
+      this.engine.finishEntry(en);
+      if (en.error) this.errors.push(kind + " shader: " + en.error + " (using MilkDrop's built-in " + kind + " instead)");
+      if (kind === "warp") this.warpProg = en.prog; else this.compProg = en.prog;
+    }
     this.blurLevel = Math.max(this.warpProg ? this.warpProg.tr.blurLevel : 0, this.compProg ? this.compProg.tr.blurLevel : 0);
   };
 
@@ -2487,7 +2606,9 @@ void main(){
     const gl = canvas.getContext("webgl2", {alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: false});
     if (!gl) throw new Error("WebGL 2 is not available in this browser.");
     this.canvas = canvas; this.gl = gl;
-    this.shaderCache = new Map();
+    this.shaderCache = new Map(); // kind + source -> entry, least recently used first
+    this.parallel = gl.getExtension("KHR_parallel_shader_compile");
+    this.pending = null;
     this.userTextures = new Map(); // lowercase name -> {tex, w, h}
     this.missingTextures = new Set();
     this.W = 0; this.H = 0;
@@ -2534,11 +2655,15 @@ void main(){
     const idx = []; for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) { const a = y * (GX + 1) + x, b = a + 1, c = a + GX + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
     this.meshIdx = new Uint16Array(idx);
     this.meshVAO = this.makeMeshVAO(this.meshPos, this.meshIdx, NV);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.meshVAO.ra); gl.bufferData(gl.ARRAY_BUFFER, this.meshRA, gl.STATIC_DRAW);
+    this.warpAlpha = -1;
     // comp mesh (CPlugin's FCGSX x FCGSY grid, duplicated seam through the center)
     this.buildCompMesh();
 
     // streaming buffers for waves/shapes
-    this.sb = new Float32Array(8 * 8192); this.sbn = 0;
+    // Consecutive primitives with the same draw state are merged into one draw call (see prim()).
+    this.sb = new Float32Array(8 * 65536); this.sbn = 0;
+    this.pm = -1; this.pa = false; this.pp = 1; this.pt = false;
     this.solidVAO = gl.createVertexArray(); gl.bindVertexArray(this.solidVAO);
     this.solidBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.solidBuf); gl.bufferData(gl.ARRAY_BUFFER, this.sb.byteLength, gl.STREAM_DRAW);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 32, 0);
@@ -2705,18 +2830,123 @@ void main(){
       gl.viewport(0, 0, W, H); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
       return {tex, fbo, w: W, h: H};
     };
-    for (const t of [...this.fb, ...this.blur]) if (t) { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fbo); }
+    const oldFb = this.fb;
     this.fb = [mk(w, h), mk(w, h)];
+    // carry the picture over (scaled) so a resolution change doesn't restart the feedback from black
+    for (let i = 0; i < 2; i++) {
+      const o = oldFb[i]; if (!o) continue;
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, o.fbo); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fb[i].fbo);
+      gl.blitFramebuffer(0, 0, o.w, o.h, 0, 0, w, h, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+    }
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+    for (const t of [...oldFb, ...this.blur]) if (t) { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fbo); }
     this.blur = [];
     let bw = w, bh = h;
     for (let i = 0; i < 3; i++) { bw = Math.max(16, bw >> 1); bh = Math.max(16, bh >> 1); this.blur.push(mk(bw, bh), mk(bw, bh)); }
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   };
 
+  /* ---- shader programs: compile in the background, cache, evict ---- */
+  const SHADER_CACHE_MAX = 40;
+  Engine.prototype.shaderEntry = function (kind, text) {
+    const key = kind + "\u0000" + text, cache = this.shaderCache;
+    let en = cache.get(key);
+    if (en) { cache.delete(key); cache.set(key, en); return en; }
+    const gl = this.gl;
+    const tr = HLSL.translate(text, kind);
+    if (!tr.ok) en = {key, done: true, prog: null, error: tr.error};
+    else {
+      const mk = (type, src) => { const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh); return sh; };
+      const v = mk(gl.VERTEX_SHADER, VS_MESH), f = mk(gl.FRAGMENT_SHADER, tr.glsl);
+      const p = gl.createProgram(); gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+      // no status queries here: those would wait for the compile to finish
+      en = {key, done: false, p, v, f, tr, prog: null, error: null};
+    }
+    cache.set(key, en);
+    this.evictShaders();
+    return en;
+  };
+  Engine.prototype.entryReady = function (en) {
+    if (en.done || !this.parallel) return true;
+    return !!this.gl.getProgramParameter(en.p, this.parallel.COMPLETION_STATUS_KHR);
+  };
+  Engine.prototype.finishEntry = function (en) {
+    if (en.done) return;
+    const gl = this.gl;
+    en.done = true;
+    if (gl.getProgramParameter(en.p, gl.LINK_STATUS)) {
+      en.prog = {program: en.p, uniforms: uniforms(gl, en.p), tr: en.tr};
+      this.warmUp(en.p);
+    } else {
+      const log = (!gl.getShaderParameter(en.f, gl.COMPILE_STATUS) && gl.getShaderInfoLog(en.f)) || (!gl.getShaderParameter(en.v, gl.COMPILE_STATUS) && gl.getShaderInfoLog(en.v)) || gl.getProgramInfoLog(en.p) || "shader compile failed";
+      en.error = String(log).split("\n").filter(Boolean)[0];
+      gl.deleteProgram(en.p);
+    }
+    gl.deleteShader(en.v); gl.deleteShader(en.f);
+    en.p = en.v = en.f = null;
+  };
+  // Some drivers finish a program's setup on its first draw; do that draw off-screen, not on a visible frame.
+  Engine.prototype.warmUp = function (program) {
+    const gl = this.gl;
+    if (!this.warmFbo) {
+      const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      this.warmFbo = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, this.warmFbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+    }
+    const prevFb = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.warmFbo); gl.viewport(0, 0, 4, 4);
+    gl.disable(gl.BLEND);
+    gl.useProgram(program); gl.bindVertexArray(this.meshVAO.vao);
+    gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
+    gl.bindVertexArray(null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFb); gl.viewport(0, 0, this.W, this.H);
+  };
+  Engine.prototype.evictShaders = function () {
+    const cache = this.shaderCache;
+    if (cache.size <= SHADER_CACHE_MAX) return;
+    const inUse = new Set();
+    for (const st of [this.state, this.oldState, this.pending && this.pending.st]) if (st) for (const k in st.entries) inUse.add(st.entries[k]);
+    for (const [key, en] of cache) {
+      if (cache.size <= SHADER_CACHE_MAX) break;
+      if (inUse.has(en)) continue;
+      const gl = this.gl;
+      if (!en.done) {
+        // a precompiled program nobody used; drop it once the driver is done with it
+        if (!this.entryReady(en)) continue;
+        gl.deleteProgram(en.p); gl.deleteShader(en.v); gl.deleteShader(en.f);
+      } else if (en.prog) gl.deleteProgram(en.prog.program);
+      cache.delete(key);
+    }
+  };
+  // Start compiling a preset's shaders ahead of time (e.g. the one auto-advance will pick next).
+  Engine.prototype.precompile = function (parts) {
+    try {
+      const spec = buildSpec(parts);
+      for (const kind of ["warp", "comp"]) if (spec[kind].ps > 0) this.shaderEntry(kind, spec[kind].text);
+    } catch (e) { /* only a head start; errors surface when the preset loads */ }
+  };
+  // the preset being shown, or the one about to be once its shaders are ready
+  Engine.prototype.latest = function () { return this.pending ? this.pending.st : this.state; };
+
   /* ---- preset management ---- */
   Engine.prototype.loadParts = function (parts, opts) {
     opts = opts || {};
     const st = new State(this, parts);
+    this.pending = {st, opts};
+    this.tryActivate();
+    return st;
+  };
+  Engine.prototype.tryActivate = function () {
+    const pd = this.pending;
+    if (!pd || !pd.st.shadersReady()) return false;
+    this.pending = null;
+    this.activate(pd.st, pd.opts);
+    if (this.onActivate) try { this.onActivate(pd.st); } catch (e) { console.error(e); }
+    return true;
+  };
+  Engine.prototype.activate = function (st, opts) {
+    st.finishShaders();
     if (opts.mashup && this.state) {
       // mash-ups keep the preset clock; they apply in place (like the original) unless a blend is asked for
       if (opts.blend > 0) { this.oldState = this.state; this.state = st; this.blendStart = this.time; this.blendDur = opts.blend; }
@@ -2727,7 +2957,7 @@ void main(){
     } else { this.state = st; this.oldState = null; this.blendDur = 0; this.presetStart = this.time; }
     if (opts.duration) this.nextPresetTime = this.presetStart + opts.duration;
     this.missingTextures.clear();
-    return st;
+    this.evictShaders();
   };
 
   /* ---- per-vertex mesh (CPlugin::ComputeGridAlphaValues) ---- */
@@ -2843,11 +3073,17 @@ void main(){
   /* ---- warp pass ---- */
   Engine.prototype.drawWarp = function (st, uv, alpha, blend) {
     const gl = this.gl, m = this.meshVAO;
-    for (let n = 0; n < NV; n++) { this.meshUV[n * 4] = uv[n * 2]; this.meshUV[n * 4 + 1] = uv[n * 2 + 1]; this.meshCol[n * 4] = 1; this.meshCol[n * 4 + 1] = 1; this.meshCol[n * 4 + 2] = 1; this.meshCol[n * 4 + 3] = alpha; }
+    const UV = this.meshUV;
+    for (let n = 0; n < NV; n++) { UV[n * 4] = uv[n * 2]; UV[n * 4 + 1] = uv[n * 2 + 1]; }
     gl.bindVertexArray(m.vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.uv); gl.bufferData(gl.ARRAY_BUFFER, this.meshUV, gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.ra); gl.bufferData(gl.ARRAY_BUFFER, this.meshRA, gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferData(gl.ARRAY_BUFFER, this.meshCol, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.uv); gl.bufferSubData(gl.ARRAY_BUFFER, 0, UV);
+    if (alpha !== this.warpAlpha) {
+      // the vertex colour is constant white; only its alpha changes, and only during blends
+      const C = this.meshCol;
+      for (let n = 0; n < NV; n++) { C[n * 4] = 1; C[n * 4 + 1] = 1; C[n * 4 + 2] = 1; C[n * 4 + 3] = alpha; }
+      gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferSubData(gl.ARRAY_BUFFER, 0, C);
+      this.warpAlpha = alpha;
+    }
     if (blend) { gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); } else gl.disable(gl.BLEND);
     this.mainSource = this.cur;
     if (st.warpProg) {
@@ -2913,9 +3149,18 @@ void main(){
     s[i++] = x; s[i++] = -y; s[i++] = r; s[i++] = g; s[i++] = b; s[i++] = a; s[i++] = u || 0; s[i++] = v || 0;
     this.sbn = i;
   };
-  Engine.prototype.flush = function (mode, additive, pointSize, textured) {
+  // Start a primitive of n vertices. Vertices join the pending batch when the draw state matches;
+  // otherwise the batch is drawn first. Draw order is always preserved.
+  Engine.prototype.prim = function (mode, additive, pointSize, textured, n) {
+    additive = !!additive; textured = !!textured; pointSize = pointSize || 1;
+    if (this.sbn && (mode !== this.pm || additive !== this.pa || pointSize !== this.pp || textured !== this.pt)) this.flush();
+    if (this.sbn + n * 8 > this.sb.length) this.flush();
+    this.pm = mode; this.pa = additive; this.pp = pointSize; this.pt = textured;
+  };
+  Engine.prototype.flush = function () {
     if (!this.sbn) return;
-    const gl = this.gl;
+    const gl = this.gl, mode = this.pm, additive = this.pa, pointSize = this.pp, textured = this.pt;
+    this.draws = (this.draws || 0) + 1;
     gl.bindVertexArray(this.solidVAO);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.solidBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.sb, 0, this.sbn);
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, additive ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA);
@@ -2933,6 +3178,7 @@ void main(){
   };
 
   /* ---- custom shapes (CPlugin::DrawCustomShapes) ---- */
+  const SHP = new Float32Array(101 * 4);
   Engine.prototype.drawShapes = function (st, alphaMult, ctx) {
     const gl = this.gl;
     for (const sh of st.shapes) {
@@ -2941,35 +3187,43 @@ void main(){
       for (let inst = 0; inst < Math.min(n, 1024); inst++) {
         const p = sh.pf;
         st.loadShapeVars(sh, inst, ctx);
-        for (let q = 1; q <= 32; q++) p["q" + q] = st.pf["q" + q];
-        for (let t = 1; t <= 8; t++) p["t" + t] = sh.tInit[t - 1];
+        for (let q = 0; q < 32; q++) p[QN[q]] = st.pf[QN[q]];
+        for (let t = 0; t < 8; t++) p[TN[t]] = sh.tInit[t];
         if (sh.frameFn) try { sh.frameFn(); } catch (e) { st.errors.push("shape: " + e.message); sh.frameFn = null; }
         let sides = Math.floor(p.sides); if (sides < 3) sides = 3; if (sides > 100) sides = 100;
         const x0 = p.x * 2 - 1, y0 = p.y * -2 + 1;
         const a1 = clamp01(p.a) * alphaMult, a2 = clamp01(p.a2) * alphaMult;
         const textured = Math.floor(p.textured) !== 0;
         const additive = Math.floor(p.additive) !== 0;
-        const pts = [];
+        const P = SHP;
+        const rad = p.rad, tz = p.tex_zoom, a0 = p.ang + Math.PI * 0.25, ta0 = p.tex_ang + Math.PI * 0.25;
         for (let j = 0; j <= sides; j++) {
-          const t = j / sides, ang = t * Math.PI * 2 + p.ang + Math.PI * 0.25, tang = t * Math.PI * 2 + p.tex_ang + Math.PI * 0.25;
-          pts.push([x0 + p.rad * Math.cos(ang), y0 + p.rad * Math.sin(ang), 0.5 + 0.5 * Math.cos(tang) / p.tex_zoom, 0.5 + 0.5 * Math.sin(tang) / p.tex_zoom]);
+          const t = j / sides * Math.PI * 2, ang = t + a0, tang = t + ta0;
+          P[j * 4] = x0 + rad * Math.cos(ang); P[j * 4 + 1] = y0 + rad * Math.sin(ang);
+          P[j * 4 + 2] = 0.5 + 0.5 * Math.cos(tang) / tz; P[j * 4 + 3] = 0.5 + 0.5 * Math.sin(tang) / tz;
         }
         const r1 = clamp01(p.r), g1 = clamp01(p.g), b1 = clamp01(p.b), r2 = clamp01(p.r2), g2 = clamp01(p.g2), b2 = clamp01(p.b2);
+        this.prim(gl.TRIANGLES, additive, 1, textured, sides * 3);
         for (let j = 0; j < sides; j++) {
-          const A = pts[j], B = pts[j + 1];
+          const A = j * 4, B = A + 4;
           // textured shapes sample the previous frame; MilkDrop's tv runs top-down like ours
           this.vtx(x0, y0, r1, g1, b1, a1, 0.5, 0.5);
-          this.vtx(A[0], A[1], r2, g2, b2, a2, A[2], A[3]);
-          this.vtx(B[0], B[1], r2, g2, b2, a2, B[2], B[3]);
+          this.vtx(P[A], P[A + 1], r2, g2, b2, a2, P[A + 2], P[A + 3]);
+          this.vtx(P[B], P[B + 1], r2, g2, b2, a2, P[B + 2], P[B + 3]);
         }
-        this.flush(gl.TRIANGLES, additive, 1, textured);
         if (p.border_a > 0) {
           const ba = clamp01(p.border_a) * alphaMult, its = Math.floor(p.thick) !== 0 ? 4 : 1;
+          const br = p.border_r, bg = p.border_g, bb = p.border_b;
           const xi = 2 / this.W, yi = 2 / this.H;
-          const offs = [[0, 0], [xi, 0], [xi, yi], [0, yi]];
+          // the outline (a closed loop) as separate line segments
+          this.prim(gl.LINES, false, 1, false, sides * 2 * its);
           for (let it = 0; it < its; it++) {
-            for (let j = 0; j < sides; j++) this.vtx(pts[j][0] + offs[it][0], pts[j][1] + offs[it][1], p.border_r, p.border_g, p.border_b, ba);
-            this.flush(gl.LINE_LOOP, false, 1, false);
+            const ox = it === 1 || it === 2 ? xi : 0, oy = it >= 2 ? yi : 0;
+            for (let j = 0; j < sides; j++) {
+              const A = j * 4, B = ((j + 1) % sides) * 4;
+              this.vtx(P[A] + ox, P[A + 1] + oy, br, bg, bb, ba);
+              this.vtx(P[B] + ox, P[B + 1] + oy, br, bg, bb, ba);
+            }
           }
         }
       }
@@ -2990,6 +3244,8 @@ void main(){
     ox[j] = xs[n - 1]; oy[j] = ys[n - 1]; j++;
     return j;
   }
+  const at = (arr, i) => arr[Math.max(0, Math.min(arr.length - 1, i))] || 0;
+  const WAVE_RO = ["time", "fps", "frame", "progress", "bass", "mid", "treb", "bass_att", "mid_att", "treb_att"];
   const TMP = {d0: new Float32Array(512), d1: new Float32Array(512), x: new Float32Array(1200), y: new Float32Array(1200), c: new Float32Array(1200 * 4), sx: new Float32Array(2400), sy: new Float32Array(2400)};
   Engine.prototype.drawCustomWaves = function (st, alphaMult, ctx, audio) {
     const gl = this.gl;
@@ -2998,14 +3254,15 @@ void main(){
       const d = wv.def, p = wv.pf, pp = wv.pp;
       const maxSamples = d.bSpectrum ? 512 : NUM_WAVE;
       // per-frame
-      Object.assign(p, {time: ctx.time, frame: ctx.frame, fps: ctx.fps, progress: ctx.progress, bass: ctx.bass, mid: ctx.mid, treb: ctx.treb, bass_att: ctx.bass_att, mid_att: ctx.mid_att, treb_att: ctx.treb_att});
-      for (let q = 1; q <= 32; q++) p["q" + q] = st.pf["q" + q];
-      for (let t = 1; t <= 8; t++) p["t" + t] = wv.tInit[t - 1];
+      p.time = ctx.time; p.frame = ctx.frame; p.fps = ctx.fps; p.progress = ctx.progress;
+      p.bass = ctx.bass; p.mid = ctx.mid; p.treb = ctx.treb; p.bass_att = ctx.bass_att; p.mid_att = ctx.mid_att; p.treb_att = ctx.treb_att;
+      for (let q = 0; q < 32; q++) p[QN[q]] = st.pf[QN[q]];
+      for (let t = 0; t < 8; t++) p[TN[t]] = wv.tInit[t];
       p.r = d.r; p.g = d.g; p.b = d.b; p.a = d.a; p.samples = d.samples;
       if (wv.frameFn) try { wv.frameFn(); } catch (e) { wv.frameFn = null; }
-      for (const k of ["time", "fps", "frame", "progress", "bass", "mid", "treb", "bass_att", "mid_att", "treb_att"]) pp[k] = p[k];
-      for (let q = 1; q <= 32; q++) pp["q" + q] = p["q" + q];
-      for (let t = 1; t <= 8; t++) pp["t" + t] = p["t" + t];
+      for (let k = 0; k < WAVE_RO.length; k++) pp[WAVE_RO[k]] = p[WAVE_RO[k]];
+      for (let q = 0; q < 32; q++) pp[QN[q]] = p[QN[q]];
+      for (let t = 0; t < 8; t++) pp[TN[t]] = p[TN[t]];
       let nSamples = Math.min(512, Math.floor(p.samples), maxSamples) - (d.bSpectrum ? 0 : 0);
       nSamples = Math.min(nSamples, maxSamples - d.sep);
       if (!(nSamples >= 2 || (d.bUseDots && nSamples >= 1))) continue;
@@ -3016,7 +3273,6 @@ void main(){
       const tt = d.bSpectrum ? (maxSamples - d.sep) / nSamples : 1;
       const mix1 = Math.pow(d.smoothing * 0.98, 0.5), mix2 = 1 - mix1;
       const A = TMP.d0, B = TMP.d1;
-      const at = (arr, i) => arr[Math.max(0, Math.min(arr.length - 1, i))] || 0;
       A[0] = at(src1, j0); B[0] = at(src2, j1);
       for (let j = 1; j < nSamples; j++) { A[j] = at(src1, Math.floor(j * tt) + j0) * mix2 + A[j - 1] * mix1; B[j] = at(src2, Math.floor(j * tt) + j1) * mix2 + B[j - 1] * mix1; }
       for (let j = nSamples - 2; j >= 0; j--) { A[j] = A[j] * mix2 + A[j + 1] * mix1; B[j] = B[j] * mix2 + B[j + 1] * mix1; }
@@ -3034,14 +3290,21 @@ void main(){
       if (!d.bUseDots) { count = smoothWave(TMP.x, TMP.y, nSamples, TMP.sx, TMP.sy); xs = TMP.sx; ys = TMP.sy; smoothed = true; }
       const its = d.bDrawThick && !d.bUseDots ? 4 : 1;
       const xi = 2 / this.W, yi = 2 / this.H;
-      const offs = [[0, 0], [xi, 0], [xi, yi], [0, yi]];
       const ptsize = (this.W >= 1024 ? 2 : 1) + (d.bDrawThick ? 1 : 0);
       for (let it = 0; it < its; it++) {
-        for (let j = 0; j < count; j++) {
-          const ci = smoothed ? (j >> 1) : j;
-          this.vtx(xs[j] + offs[it][0], ys[j] + offs[it][1], cols[ci * 4], cols[ci * 4 + 1], cols[ci * 4 + 2], cols[ci * 4 + 3]);
+        const ox = it === 1 || it === 2 ? xi : 0, oy = it >= 2 ? yi : 0;
+        if (d.bUseDots) {
+          this.prim(gl.POINTS, d.bAdditive, ptsize, false, count);
+          for (let j = 0; j < count; j++) this.vtx(xs[j] + ox, ys[j] + oy, cols[j * 4], cols[j * 4 + 1], cols[j * 4 + 2], cols[j * 4 + 3]);
+        } else {
+          // the line strip as separate segments, so waves that share a draw state batch together
+          this.prim(gl.LINES, d.bAdditive, 1, false, (count - 1) * 2);
+          for (let j = 0; j < count - 1; j++) {
+            const c0 = smoothed ? (j >> 1) : j, c1 = smoothed ? ((j + 1) >> 1) : j + 1;
+            this.vtx(xs[j] + ox, ys[j] + oy, cols[c0 * 4], cols[c0 * 4 + 1], cols[c0 * 4 + 2], cols[c0 * 4 + 3]);
+            this.vtx(xs[j + 1] + ox, ys[j + 1] + oy, cols[c1 * 4], cols[c1 * 4 + 1], cols[c1 * 4 + 2], cols[c1 * 4 + 3]);
+          }
         }
-        this.flush(d.bUseDots ? gl.POINTS : gl.LINE_STRIP, !!d.bAdditive, ptsize, false);
       }
     }
   };
@@ -3151,12 +3414,18 @@ void main(){
     const segs = brk < 0 ? [[0, n]] : [[0, brk], [brk, n]];
     const dots = !!pf.wave_usedots, thick = !!(pf.wave_thick || pf.wave_usedots) && this.W >= 512;
     const xi = 2 / this.W, yi = 2 / this.H;
-    const offs = [[0, 0], [xi, 0], [xi, yi], [0, yi]];
+    const SX = TMP.sx, SY = TMP.sy;
     for (const [a, b] of segs) {
-      const cnt = smoothWave(X.subarray(a, b), Y.subarray(a, b), b - a, TMP.sx, TMP.sy);
+      const cnt = smoothWave(X.subarray(a, b), Y.subarray(a, b), b - a, SX, SY);
       for (let it = 0; it < (thick ? 4 : 1); it++) {
-        for (let j = 0; j < cnt; j++) this.vtx(TMP.sx[j] + offs[it][0], TMP.sy[j] + offs[it][1], cr, cg, cb, alpha);
-        this.flush(dots ? gl.POINTS : gl.LINE_STRIP, !!pf.wave_additive, 1, false);
+        const ox = it === 1 || it === 2 ? xi : 0, oy = it >= 2 ? yi : 0;
+        if (dots) {
+          this.prim(gl.POINTS, pf.wave_additive, 1, false, cnt);
+          for (let j = 0; j < cnt; j++) this.vtx(SX[j] + ox, SY[j] + oy, cr, cg, cb, alpha);
+        } else {
+          this.prim(gl.LINES, pf.wave_additive, 1, false, (cnt - 1) * 2);
+          for (let j = 0; j < cnt - 1; j++) { this.vtx(SX[j] + ox, SY[j] + oy, cr, cg, cb, alpha); this.vtx(SX[j + 1] + ox, SY[j + 1] + oy, cr, cg, cb, alpha); }
+        }
       }
     }
   };
@@ -3167,21 +3436,22 @@ void main(){
     if (pf.darken_center) {
       const h = 0.05, a = 3 / 32;
       const pts = [[-h, 0], [0, -h], [h, 0], [0, h], [-h, 0]];
+      this.prim(gl.TRIANGLES, false, 1, false, 12);
       for (let i = 0; i < 4; i++) { this.vtx(0, 0, 0, 0, 0, a); this.vtx(pts[i][0], pts[i][1], 0, 0, 0, 0); this.vtx(pts[i + 1][0], pts[i + 1][1], 0, 0, 0, 0); }
-      this.flush(gl.TRIANGLES, false, 1, false);
     }
     for (let it = 0; it < 2; it++) {
       const r = it ? pf.ib_r : pf.ob_r, g = it ? pf.ib_g : pf.ob_g, b = it ? pf.ib_b : pf.ob_b, a = it ? pf.ib_a : pf.ob_a;
       if (!(a > 0.001)) continue;
       const inner = it === 0 ? 1 - pf.ob_size : 1 - pf.ob_size - pf.ib_size, outer = it === 0 ? 1 : 1 - pf.ob_size;
       let q = [[inner, inner], [outer, outer], [outer, -outer], [inner, -inner]];
+      this.prim(gl.TRIANGLES, false, 1, false, 24);
       for (let rot = 0; rot < 4; rot++) {
         this.vtx(q[0][0], q[0][1], r, g, b, a); this.vtx(q[1][0], q[1][1], r, g, b, a); this.vtx(q[2][0], q[2][1], r, g, b, a);
         this.vtx(q[0][0], q[0][1], r, g, b, a); this.vtx(q[2][0], q[2][1], r, g, b, a); this.vtx(q[3][0], q[3][1], r, g, b, a);
         q = q.map(([x, y]) => [-y, x]);
       }
-      this.flush(gl.TRIANGLES, false, 1, false);
     }
+    this.flush();
   };
 
   /* ---- motion vectors (CPlugin::DrawMotionVectors), drawn into the previous frame ---- */
@@ -3214,24 +3484,25 @@ void main(){
         let ddx = (fx2 - fx) * len, ddy = (fy2 - fy) * len;
         const l = Math.sqrt(ddx * ddx + ddy * ddy);
         if (l <= minLen) { if (l > 1e-8) { const k = minLen / l; ddx *= k; ddy *= k; } else { ddx = minLen; ddy = minLen; } }
+        this.prim(gl.LINES, false, 1, false, 2);
         // D3D y-up here, but motion vectors are drawn into the stored frame: convert like everything else
         this.vtx(fx * 2 - 1, fy * 2 - 1, pf.mv_r, pf.mv_g, pf.mv_b, clamp01(pf.mv_a));
         this.vtx((fx + ddx) * 2 - 1, (fy + ddy) * 2 - 1, pf.mv_r, pf.mv_g, pf.mv_b, clamp01(pf.mv_a));
       }
     }
-    this.flush(gl.LINES, false, 1, false);
+    this.flush();
   };
 
   /* ---- composite (CPlugin::ShowToUser_*) ---- */
+  const SHADE = [new Float64Array(3), new Float64Array(3), new Float64Array(3), new Float64Array(3)];
   Engine.prototype.updateHueShade = function (st) {
     const t = this.time, rs = st.randPreset;
-    const shade = [];
     for (let i = 0; i < 4; i++) {
-      const c = [0.6 + 0.3 * Math.sin(t * 30 * 0.0143 + 3 + i * 21 + rs[3]), 0.6 + 0.3 * Math.sin(t * 30 * 0.0107 + 1 + i * 13 + rs[1]), 0.6 + 0.3 * Math.sin(t * 30 * 0.0129 + 6 + i * 9 + rs[2])];
-      const m = Math.max(c[0], c[1], c[2]);
-      shade.push(c.map((x) => 0.5 + 0.5 * (x / m)));
+      const c0 = 0.6 + 0.3 * Math.sin(t * 30 * 0.0143 + 3 + i * 21 + rs[3]), c1 = 0.6 + 0.3 * Math.sin(t * 30 * 0.0107 + 1 + i * 13 + rs[1]), c2 = 0.6 + 0.3 * Math.sin(t * 30 * 0.0129 + 6 + i * 9 + rs[2]);
+      const m = Math.max(c0, c1, c2), S = SHADE[i];
+      S[0] = 0.5 + 0.5 * (c0 / m); S[1] = 0.5 + 0.5 * (c1 / m); S[2] = 0.5 + 0.5 * (c2 / m);
     }
-    return shade;
+    return SHADE;
   };
   Engine.prototype.drawComp = function (st, alpha, blend) {
     const gl = this.gl, m = this.compMesh;
@@ -3243,7 +3514,7 @@ void main(){
       col[k * 4 + 3] = alpha;
     }
     gl.bindVertexArray(m.vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferData(gl.ARRAY_BUFFER, col, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferSubData(gl.ARRAY_BUFFER, 0, col);
     if (blend) { gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); } else gl.disable(gl.BLEND);
     this.mainSource = 1 - this.cur;
     if (st.compProg) {
@@ -3265,19 +3536,20 @@ void main(){
 
   /* ======================= frame ======================= */
   Engine.prototype.render = function (audio, dt) {
+    if (this.pending) this.tryActivate();
     if (!this.state) return;
     const gl = this.gl;
     this.time += dt; this.frame++;
     if (dt > 0) this.fps = this.fps * 0.93 + Math.min(240, 1 / dt) * 0.07;
-    this.randFrame = [Math.random(), Math.random(), Math.random(), Math.random()];
+    const rf = this.randFrame; rf[0] = Math.random(); rf[1] = Math.random(); rf[2] = Math.random(); rf[3] = Math.random();
     audio.update(this.time, this.fps);
-    const ctx = {
-      time: this.time, fps: this.fps, frame: this.frame,
-      progress: Math.max(0, Math.min(1, (this.time - this.presetStart) / Math.max(0.001, this.nextPresetTime - this.presetStart))),
-      bass: audio.immRel[0], mid: audio.immRel[1], treb: audio.immRel[2],
-      bass_att: audio.avgRel[0], mid_att: audio.avgRel[1], treb_att: audio.avgRel[2],
-      pixelsx: this.canvas.clientWidth || this.W, pixelsy: this.canvas.clientHeight || this.H
-    };
+    const ctx = this.ctx || (this.ctx = {});
+    ctx.time = this.time; ctx.fps = this.fps; ctx.frame = this.frame;
+    ctx.progress = Math.max(0, Math.min(1, (this.time - this.presetStart) / Math.max(0.001, this.nextPresetTime - this.presetStart)));
+    ctx.bass = audio.immRel[0]; ctx.mid = audio.immRel[1]; ctx.treb = audio.immRel[2];
+    ctx.bass_att = audio.avgRel[0]; ctx.mid_att = audio.avgRel[1]; ctx.treb_att = audio.avgRel[2];
+    ctx.pixelsx = this.canvas.clientWidth || this.W; ctx.pixelsy = this.canvas.clientHeight || this.H;
+    this.draws = 0;
     const st = this.state;
     let old = this.oldState, mix = 1, linear = 1;
     if (old) {
@@ -3321,7 +3593,7 @@ void main(){
     this.drawCustomWaves(st, old ? linear : 1, ctx, audio);
     if (old) this.drawCustomWaves(old, 1 - linear, ctx, audio);
     this.drawWave(st, audio);
-    this.drawSprites(st);
+    this.drawSprites(st); // ends with flush() of the batched primitives
 
     // composite to the screen
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, this.W, this.H);
@@ -3351,7 +3623,7 @@ void main(){
   /* ---------------- engine ---------------- */
   const canvas = $("#gl");
   let engine;
-  try { engine = new window.MilkEngine(canvas); }
+  try { engine = new window.MilkEngine(canvas); engine.onActivate = () => { showTitle(); updateIssues(); }; }
   catch (e) { console.error(e); $("#nogl").hidden = false; $("#bar").hidden = true; return; }
   const audio = new window.AudioEngine();
 
@@ -3472,6 +3744,7 @@ void main(){
 
   /* ---------------- playback state ---------------- */
   let curIndex = 0;
+  let upcoming = -1, upcomingTimer = 0; // see prepUpcoming()
   let locked = false;
   // History: up to 30 presets and mash-ups, browsed with Prev/Next like a browser's back/forward.
   // Entries hold the preset objects themselves, so re-sorting the library can't break them.
@@ -3569,10 +3842,28 @@ void main(){
     showTitle();
     refreshLists();
     setTimeout(updateIssues, 400);
+    prepUpcoming();
     return st;
   }
   function scheduleNext() { nextAt = settings.autoOn ? performance.now() / 1000 + settings.auto * (0.9 + Math.random() * 0.2) : Infinity; }
-  function randomIndex() { if (lib.length < 2) return 0; let i; do { i = Math.floor(Math.random() * lib.length); } while (i === curIndex); return i; }
+  function randomIndex() {
+    if (lib.length < 2) return 0;
+    if (upcoming >= 0 && upcoming < lib.length && upcoming !== curIndex) { const u = upcoming; upcoming = -1; return u; }
+    let i; do { i = Math.floor(Math.random() * lib.length); } while (i === curIndex); return i;
+  }
+  // Pick the next random preset early and start compiling its shaders in the background,
+  // so pressing next / random or auto-advance switches without a hitch.
+  function prepUpcoming() {
+    clearTimeout(upcomingTimer);
+    if (!engine.parallel) return;
+    upcomingTimer = setTimeout(() => {
+      if (lib.length < 2) return;
+      upcoming = -1;
+      const u = settings.shuffle ? randomIndex() : (curIndex + 1) % lib.length;
+      if (settings.shuffle) upcoming = u;
+      try { engine.precompile(partsFrom([u, u, u, u, u])); } catch (e) { /* ignore */ }
+    }, 1500);
+  }
   const goNext = (opts) => load(settings.shuffle ? randomIndex() : curIndex + 1, opts);
 
   const goRandom = (hard) => load(randomIndex(), {hard});
@@ -3600,7 +3891,7 @@ void main(){
   $("#hudToggle").addEventListener("click", () => setHud(document.body.classList.contains("hudoff"), true));
   setHud(LS.get("hudOn", true), false);
   function showTitle() {
-    const st = engine.state;
+    const st = engine.latest();
     const isMash = st && st.spec.isMash;
     $("#tnum").textContent = isMash ? "MASH-UP" : String(curIndex + 1).padStart(String(lib.length).length, "0") + " / " + lib.length + (locked ? " · LOCKED" : "");
     $("#tname").textContent = isMash ? mash.slots.map((i) => lib[i] ? lib[i].name : "?").filter((v, k, a) => a.indexOf(v) === k).join("  +  ") : (lib[curIndex] ? lib[curIndex].name : "");
@@ -3610,13 +3901,13 @@ void main(){
     let src = audio.status || "";
     if (audio.mode === "file" && audio.file) src = audio.file.name + " · " + fmt(audio.filePosition()) + " / " + fmt(audio.file.buffer.duration) + (audio.file.playing ? "" : " · paused, demo beat showing");
     $("#src").textContent = src;
-    const st = engine.state;
+    const st = engine.latest();
     const issues = st ? st.errors.length + engine.missingTextures.size : 0;
-    $("#meters").innerHTML = "bass <b>" + audio.immRel[0].toFixed(2) + "</b> · mid <b>" + audio.immRel[1].toFixed(2) + "</b> · treb <b>" + audio.immRel[2].toFixed(2) + "</b> · " + Math.round(engine.fps) + " fps"
+    $("#meters").innerHTML = "bass <b>" + audio.immRel[0].toFixed(2) + "</b> · mid <b>" + audio.immRel[1].toFixed(2) + "</b> · treb <b>" + audio.immRel[2].toFixed(2) + "</b> · " + Math.round(engine.fps) + " fps" + (resScale() < 1 ? " · " + Math.round(resScale() * 100) + "% res" : "")
       + (st && st.spec.isMash ? '<span class="tag mash">mash-up</span>' : "") + (locked ? '<span class="tag">locked</span>' : "") + (issues ? '<span class="tag warn">' + issues + (issues === 1 ? " issue" : " issues") + "</span>" : "");
   }
   function updateIssues() {
-    const st = engine.state; const ul = $("#issues"); ul.textContent = "";
+    const st = engine.latest(); const ul = $("#issues"); ul.textContent = "";
     if (!st) return;
     const items = [...new Set(st.errors)].slice(0, 30);
     for (const m of engine.missingTextures) items.push("Missing texture \"" + m + "\"" + (siteTex.state === "loading" ? " (site textures are still loading)" : ". Add it to the site's textures folder, or with Add textures") + "; noise is used meanwhile.");
@@ -3775,7 +4066,7 @@ void main(){
 
   /* ---- export the current mash-up as a .milk file ---- */
   function exportMash() {
-    const st = engine.state; if (!st) return;
+    const st = engine.latest(); if (!st) return;
     const names = mash.slots.map((i) => (lib[i] ? lib[i].name : "")).filter((v, k, a) => v && a.indexOf(v) === k);
     const d = new Date(), pad = (n) => String(n).padStart(2, "0");
     const stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
@@ -4188,17 +4479,63 @@ void main(){
 
   /* ---------------- render loop ---------------- */
   let last = performance.now(), hudClock = 0;
+  // Quality: High renders at up to 1280 px on the long side; Low at 60% of that; Auto moves between
+  // 50% and 100% depending on whether frames are being missed.
+  const SCALES = [1, 0.85, 0.72, 0.6, 0.5];
+  const perf = {mode: LS.get("quality", "auto"), step: 0, slow: 0, frames: 0, calm: 0, cooldown: 0, cpu: 0};
+  if (!["auto", "high", "low"].includes(perf.mode)) perf.mode = "auto";
+  const resScale = () => (perf.mode === "high" ? 1 : perf.mode === "low" ? 0.6 : SCALES[perf.step]);
+  $("#quality").value = perf.mode;
+  $("#quality").addEventListener("change", (e) => { perf.mode = e.target.value; perf.step = 0; perf.slow = perf.frames = perf.calm = 0; LS.set("quality", perf.mode); });
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let w = canvas.clientWidth * dpr, h = canvas.clientHeight * dpr;
-    const s = Math.min(1, 1280 / Math.max(w, h, 1));
+    const s = Math.min(1, 1280 / Math.max(w, h, 1)) * resScale();
     engine.resize(w * s, h * s);
+  }
+  // Frame pacing: on 120/144 Hz screens draw every 2nd refresh (an even cadence near 60 fps)
+  // instead of every one. The refresh interval is measured from the fastest recent callbacks.
+  const pace = {ivals: [], refresh: 1000 / 60, div: 1, tick: 0, lastRaf: performance.now()};
+  function measureRefresh(now) {
+    const d = now - pace.lastRaf; pace.lastRaf = now;
+    if (d > 2 && d < 100) pace.ivals.push(d);
+    if (pace.ivals.length >= 60) {
+      const sorted = pace.ivals.slice().sort((a, b) => a - b);
+      pace.refresh = sorted[Math.floor(sorted.length * 0.2)];
+      pace.div = Math.max(1, Math.floor(1000 / pace.refresh / 60 + 0.15));
+      pace.ivals.length = 0;
+    }
+  }
+  // Auto quality: count frames that arrive late. Only lower the resolution when the JS work is small,
+  // i.e. the GPU (pixels) is the likely bottleneck; resolution can't fix slow preset equations.
+  function adapt(interval, cpuMs) {
+    if (perf.mode !== "auto" || document.hidden) return;
+    const target = pace.refresh * pace.div;
+    perf.frames++; perf.cpu += cpuMs;
+    if (interval > target * 1.45) perf.slow++;
+    if (perf.cooldown > 0) perf.cooldown--;
+    if (perf.frames < 60) return;
+    const slowFrac = perf.slow / perf.frames, cpuAvg = perf.cpu / perf.frames;
+    perf.slow = perf.frames = 0; perf.cpu = 0;
+    if (slowFrac > 0.08 && cpuAvg < target * 0.5) {
+      perf.calm = 0;
+      if (perf.cooldown === 0 && perf.step < SCALES.length - 1) { perf.step++; perf.cooldown = 120; }
+    } else if (slowFrac < 0.02) {
+      // raise again after ~5 s of smooth frames
+      if (++perf.calm >= 5 && perf.step > 0 && perf.cooldown === 0) { perf.step--; perf.calm = 0; perf.cooldown = 120; }
+    } else perf.calm = 0;
   }
   function frame(now) {
     requestAnimationFrame(frame);
+    measureRefresh(now);
+    if (++pace.tick < pace.div) return;
+    pace.tick = 0;
+    const interval = now - last;
     sizeCanvas();
-    const dt = Math.min(0.1, Math.max(0, (now - last) / 1000)); last = now;
+    const dt = Math.min(0.1, Math.max(0, interval / 1000)); last = now;
+    const t0 = performance.now();
     try { engine.render(audio, dt); } catch (e) { console.error(e); }
+    adapt(interval, performance.now() - t0);
     if (autoMash.on) { if (!locked && now / 1000 > autoMash.next && lib.length > 1) autoMashTick(); }
     else if (!locked && settings.autoOn && now / 1000 > nextAt && lib.length > 1) goNext();
     hudClock += dt;
