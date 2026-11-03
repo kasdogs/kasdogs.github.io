@@ -205,7 +205,7 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .bin.active{border-color:var(--accent);background:rgba(134,200,255,.1)}
 .bin.active .lab{color:var(--accent)}
 .kbd{font-size:11px;color:var(--dim);line-height:1.6}
-body.menukeys-off #paneMash .kbd{opacity:.4}
+body.menukeys-off #paneMash .kbd,body.menukeys-off #panePresets .kbd{opacity:.4}
 .kbd b{color:var(--ink);font-weight:500}
 
 .seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
@@ -303,6 +303,11 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <dt>? / F1</dt><dd>Help / hotkeys</dd>
       <dt>Esc</dt><dd>Close settings or this panel</dd>
     </dl>
+    <p class="h">Preset menu</p>
+    <dl>
+      <dt>PgUp PgDn</dt><dd>Move through the list</dd>
+      <dt>Home / End, a–z</dt><dd>Jump in the list</dd>
+    </dl>
     <p class="h">Mash-up menu</p>
     <dl>
       <dt>1–5</dt><dd>Choose an element</dd>
@@ -346,6 +351,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     <p class="count" id="libCount"></p>
     <input type="search" id="search" placeholder="Search: words in any order, &quot;phrase&quot;, -exclude" aria-label="Search presets" autocomplete="off">
     <div class="list" id="presetList" tabindex="0" aria-label="Preset list"><div class="spacer"></div></div>
+    <p class="kbd"><b>PgUp PgDn Home End a–z</b> jump in the list · click the visualizer to use the hotkeys</p>
     <div class="box">
       <button type="button" class="switch" role="switch" id="autoAdv" aria-checked="false"><span class="track"></span><span>Auto-advance</span></button>
       <div class="row">
@@ -4640,6 +4646,18 @@ void main(){
     const data = mashList.data; const cur = data.indexOf(mash.slots[mash.active]);
     for (let s = 1; s <= data.length; s++) { const k = (cur + s) % data.length; if (lib[data[k]].name.toLowerCase().startsWith(letter)) return mashStep(0, k); }
   }
+  // the same quick-locate keys for the preset list: each jump loads that preset (within the current search)
+  function presetStep(delta, absolute) {
+    const data = presetList.data; if (!data.length) return;
+    let k = data.indexOf(curIndex); if (k < 0) k = delta > 0 ? -1 : data.length;
+    k = absolute != null ? absolute : Math.max(0, Math.min(data.length - 1, k + delta));
+    if (data[k] === curIndex && lib[curIndex]) { presetList.reveal(); return; }
+    load(data[k]); presetList.reveal();
+  }
+  function presetSeek(ch) {
+    const data = presetList.data, cur = data.indexOf(curIndex);
+    for (let s = 1; s <= data.length; s++) { const k = (cur + s + data.length) % data.length; if (lib[data[k]].name.toLowerCase().startsWith(ch)) return presetStep(0, k); }
+  }
   function mashRandom(all, element, blend) {
     const rnd = () => Math.floor(Math.random() * lib.length);
     const k = element != null ? element : mash.active;
@@ -5233,6 +5251,16 @@ void main(){
     if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
     let hit = true;
+    if (openTab === "presets" && !$("#drawer").hidden && menuFocus) {
+      let used = true;
+      if (k === "PageUp") presetStep(-12);
+      else if (k === "PageDown") presetStep(12);
+      else if (k === "Home") presetStep(0, 0);
+      else if (k === "End") presetStep(0, presetList.data.length - 1);
+      else if (/^[a-z0-9]$/i.test(k)) presetSeek(k.toLowerCase());
+      else used = false;
+      if (used) { e.preventDefault(); wake(); return; }
+    }
     if (openTab === "mash" && !$("#drawer").hidden && menuFocus) {
       if (/^[1-5]$/.test(k)) setBin(+k - 1);
       else if (k === "ArrowLeft") setBin(Math.max(0, mash.active - 1));
