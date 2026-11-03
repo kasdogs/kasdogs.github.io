@@ -176,7 +176,11 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 .keys{font-size:12.5px;line-height:1.5}
 .keys dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
 .keys dt{color:var(--accent);white-space:nowrap}
-.keys dd{margin:0;min-width:0}
+.keys dd{margin:0;min-width:0;overflow-wrap:anywhere}
+/* every list in the keys panel shares one key column, so all the descriptions line up */
+.keyspanel{grid-template-columns:max-content minmax(0,1fr);column-gap:14px}
+.keyspanel > *{grid-column:1/-1}
+.keyspanel dl,.keyspanel > .keys{display:grid;grid-template-columns:subgrid;grid-column:1/-1}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:7;
   max-width:min(560px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--warn);color:var(--ink);padding:10px 14px;border-radius:3px;font-size:12.5px;line-height:1.45}
