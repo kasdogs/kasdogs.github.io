@@ -4866,7 +4866,7 @@ void main(){
   let confirmTimer = 0;
   $("#clearLib").addEventListener("click", () => {
     $("#clearLibYes").hidden = false; $("#clearLibYes").focus();
-    clearTimeout(confirmTimer); confirmTimer = setTimeout(() => ($("#clearLibYes").hidden = true), 6000);
+    clearTimeout(confirmTimer); confirmTimer = setTimeout(() => ($("#clearLibYes").hidden = true), 5000);
   });
   $("#clearLibYes").addEventListener("click", async () => {
     libGen++;
