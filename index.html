@@ -206,8 +206,10 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .bin.active .lab{color:var(--accent)}
 .kbd{font-size:11px;color:var(--dim);line-height:1.6}
 /* while the panel doesn't have the keys (the visualizer was clicked last) it goes grey and darker */
-#drawer .tabs,#drawer .pane{transition:filter .2s}
-body.menukeys-off #drawer .tabs,body.menukeys-off #drawer .pane{filter:grayscale(1) brightness(.62)}
+#drawer .pane,#drawer .tabs button{transition:filter .2s,color .2s,border-color .2s}
+body.menukeys-off #drawer .pane{filter:saturate(.7) brightness(.86)}
+body.menukeys-off #drawer .tabs button{color:var(--dim)}
+body.menukeys-off #drawer .tabs button[aria-selected="true"]{color:var(--dim);border-bottom-color:rgba(150,180,225,.4)}
 .kbd b{color:var(--ink);font-weight:500}
 
 .seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
