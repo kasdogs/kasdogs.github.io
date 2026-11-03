@@ -136,7 +136,12 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .item:hover{background:rgba(134,200,255,.08)}
 .item.cur{background:rgba(134,200,255,.16);color:#fff}
 .item .nm{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.item .ver{font-size:10px;color:var(--dim);letter-spacing:.06em;flex:0 0 auto}
+/* favorites: hovering the md1/md2/starter tag shows ☆ (click to favorite); favorites always show ★ */
+.item .ver{font-size:10px;color:var(--dim);letter-spacing:.06em;flex:0 0 auto;align-self:stretch;display:flex;align-items:center;justify-content:flex-end;min-width:4.6em;margin-right:-10px;padding:0 10px 0 6px}
+.item .ver .star{display:none;font-size:15px;line-height:1;letter-spacing:0;color:var(--ink)}
+.item .ver:hover .lab,.item.fav .ver .lab{display:none}
+.item .ver:hover .star,.item.fav .ver .star{display:inline}
+.item.fav .ver .star{color:#ffd666}
 .empty{padding:18px;color:var(--dim);font-size:12px;line-height:1.5}
 
 .bins{display:grid;gap:4px}
@@ -3652,10 +3657,21 @@ void main(){
     lib.push(it); byName.set(key, it);
     return it;
   }
+  // Favorites (by lowercase name) sort first, then your other presets, then the starters; each group A–Z.
+  const favs = new Set((LS.get("favs", []) || []).map((n) => String(n).toLowerCase()));
+  const isFav = (it) => !!it && favs.has(it.name.toLowerCase());
+  const group = (it) => (isFav(it) ? 0 : it.builtin ? 2 : 1);
+  function toggleFav(i) {
+    const it = lib[i]; if (!it) return;
+    const k = it.name.toLowerCase();
+    if (favs.has(k)) favs.delete(k); else favs.add(k);
+    LS.set("favs", [...favs]);
+    sortLib(); showTitle(); refreshLists();
+  }
   function sortLib() {
     const cur = lib[curIndex];
     const mashItems = mash.slots.map((i) => lib[i]);
-    lib.sort((a, b) => (a.builtin !== b.builtin ? (a.builtin ? -1 : 1) : a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true})));
+    lib.sort((a, b) => (group(a) - group(b)) || a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true}));
     curIndex = Math.max(0, lib.indexOf(cur));
     mash.slots = mashItems.map((it) => Math.max(0, lib.indexOf(it)));
   }
@@ -3937,7 +3953,11 @@ void main(){
   function VList(el, onPick) {
     this.el = el; this.spacer = el.querySelector(".spacer"); this.rows = []; this.data = []; this.cur = -1; this.onPick = onPick; this.rowH = 30;
     el.addEventListener("scroll", () => this.draw());
-    el.addEventListener("click", (e) => { const b = e.target.closest(".item"); if (b) this.onPick(+b.dataset.i); });
+    el.addEventListener("click", (e) => {
+      const b = e.target.closest(".item"); if (!b) return;
+      if (e.target.closest(".ver")) toggleFav(+b.dataset.i); // the star area toggles the favorite instead of loading
+      else this.onPick(+b.dataset.i);
+    });
   }
   VList.prototype.set = function (data, cur, emptyMsg) {
     this.data = data; this.cur = cur; this.emptyMsg = emptyMsg;
@@ -3958,7 +3978,7 @@ void main(){
     for (let r = first; r < last; r++, k++) {
       let b = this.rows[k];
       if (!b) {
-        b = document.createElement("button"); b.type = "button"; b.className = "item"; b.innerHTML = '<span class="nm"><span class="tk"></span></span><span class="ver"></span>';
+        b = document.createElement("button"); b.type = "button"; b.className = "item"; b.innerHTML = '<span class="nm"><span class="tk"></span></span><span class="ver"><span class="lab"></span><span class="star"></span></span>';
         const nm = b.firstChild;
         b.addEventListener("mouseenter", () => tickOn(nm)); b.addEventListener("mouseleave", () => tickOff(nm));
         b.addEventListener("focus", () => tickOn(nm)); b.addEventListener("blur", () => tickOff(nm));
@@ -3968,7 +3988,11 @@ void main(){
       b.hidden = false; b.style.top = r * this.rowH + "px"; b.dataset.i = i;
       const tk = b.firstChild.firstChild;
       if (tk.textContent !== it.name) { tickOff(b.firstChild); tk.textContent = it.name; if (b.matches(":hover")) tickOn(b.firstChild); }
-      b.lastChild.textContent = it.builtin ? "starter" : it.ver;
+      const fav = isFav(it), ver = b.lastChild;
+      ver.firstChild.textContent = it.builtin ? "starter" : it.ver;
+      ver.lastChild.textContent = fav ? "\u2605" : "\u2606";
+      ver.title = ""; ver.setAttribute("aria-label", fav ? "Remove from favorites" : "Add to favorites");
+      b.classList.toggle("fav", fav);
       b.classList.toggle("cur", i === this.cur);
       b.setAttribute("aria-current", i === this.cur ? "true" : "false");
     }
