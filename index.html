@@ -45,6 +45,12 @@ body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--mon
 .title{display:flex;align-items:baseline;gap:10px;min-width:0;position:relative;padding-right:56px}
 .title .num{font:500 11px/1 var(--mono);color:var(--accent);letter-spacing:.08em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .title .name{font:600 clamp(18px,2.8vw,28px)/1.15 var(--display);letter-spacing:.02em;text-wrap:balance;min-width:0;overflow-wrap:anywhere}
+/* favorite star beside the title: ☆ not a favorite, ★ favorite */
+.favBtn{pointer-events:auto;align-self:center;flex:none;padding:0 2px;border:0;background:transparent;color:var(--ink);
+  font:400 clamp(16px,2.2vw,22px)/1 var(--display);letter-spacing:0;text-transform:none;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+.favBtn:hover:not(:disabled){color:#ffd666}
+.favBtn[aria-pressed="true"]{color:#ffd666;background:transparent}
+body.idle .favBtn{pointer-events:none}
 .meta,.meters{font:400 12px/1.4 var(--mono);color:var(--dim);min-width:0;overflow-wrap:anywhere}
 .meters{font-variant-numeric:tabular-nums}
 .meters b{color:var(--ink);font-weight:500}
@@ -55,7 +61,7 @@ body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--mon
 body.hudoff .hudToggle svg{transform:rotate(180deg)}
 body.hudoff .title{padding-right:0}
 body.hudoff .hudToggle{position:static}
-body.hudoff .hud .num,body.hudoff .hud .name,body.hudoff .hud .meta,body.hudoff .hud .meters{display:none}
+body.hudoff .hud .favBtn,body.hudoff .hud .num,body.hudoff .hud .name,body.hudoff .hud .meta,body.hudoff .hud .meters{display:none}
 body.hudoff .hud{left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 12px)}
 body.idle .hudToggle{pointer-events:none}
 .tag{display:inline-block;padding:1px 6px;border:1px solid var(--line);border-radius:2px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-left:6px}
@@ -207,7 +213,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 <canvas id="gl" aria-label="MilkDrop visualizer"></canvas>
 
 <div class="hud">
-  <div id="title" class="title show"><span class="num" id="tnum">01</span><span class="name" id="tname">MilkDrop</span><button type="button" class="hudToggle" id="hudToggle" aria-expanded="true" aria-label="Hide preset info"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  <div id="title" class="title show"><span class="num" id="tnum">01</span><button type="button" class="favBtn" id="favBtn" aria-pressed="false" aria-label="Add to favorites" hidden>☆</button><span class="name" id="tname">MilkDrop</span><button type="button" class="hudToggle" id="hudToggle" aria-expanded="true" aria-label="Hide preset info"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
   <div class="meta" id="src">Demo beat (silent)</div>
   <div class="meters" id="meters"></div>
 </div>
@@ -3918,6 +3924,7 @@ void main(){
     if (save) LS.set("hudOn", on);
     placeArrow();
   }
+  $("#favBtn").addEventListener("click", () => { if (lib[curIndex]) toggleFav(curIndex); });
   $("#hudToggle").addEventListener("click", () => setHud(document.body.classList.contains("hudoff"), true));
   setHud(LS.get("hudOn", true), false);
   function showTitle() {
@@ -3925,6 +3932,14 @@ void main(){
     const isMash = st && st.spec.isMash;
     $("#tnum").textContent = isMash ? "MASH-UP" : String(curIndex + 1).padStart(String(lib.length).length, "0") + " / " + lib.length + (locked ? " · LOCKED" : "");
     $("#tname").textContent = isMash ? mash.slots.map((i) => lib[i] ? lib[i].name : "?").filter((v, k, a) => a.indexOf(v) === k).join("  +  ") : (lib[curIndex] ? lib[curIndex].name : "");
+    const fb = $("#favBtn"), single = !isMash && lib[curIndex];
+    fb.hidden = !single;
+    if (single) {
+      const on = isFav(lib[curIndex]);
+      fb.textContent = on ? "\u2605" : "\u2606";
+      fb.setAttribute("aria-pressed", String(on));
+      fb.setAttribute("aria-label", on ? "Remove from favorites" : "Add to favorites");
+    }
     placeArrow();
   }
   // The hide arrow sits 30px after the end of the name's first line (the title wraps before it reaches it).
