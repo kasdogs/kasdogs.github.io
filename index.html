@@ -2401,8 +2401,8 @@ ${copyInit}  vec2 uv = _uv.xy;
  *   per-frame eqs -> motion vectors (into prev frame) -> warp mesh (prev -> target, warp shader or fixed)
  *   -> blur passes -> custom shapes -> custom waves -> main wave -> darken center + borders
  *   -> composite (target -> screen, comp shader or fixed) -> swap.
- * Internal textures are 8-bit RGBA like MilkDrop's, and rendered "as if square" (aspect 1:1),
- * stretched to the window, matching how presets looked in Winamp.
+ * Internal textures are 8-bit RGBA like MilkDrop's and match the window's shape, like MilkDrop 2's default
+ * "auto" texture size; aspect correction follows CPlugin (m_fAspectX/Y and their inverses), so circles stay round.
  * In the feedback textures, row 0 holds MilkDrop's top line, so a MilkDrop (u,v) is a GL texcoord as-is.
  */
 (function (root) {
@@ -2624,7 +2624,7 @@ void main(){
     pf.wave_usedots = w.wave_usedots; pf.wave_thick = w.wave_thick; pf.wave_additive = w.wave_additive; pf.wave_brighten = w.wave_brighten;
     pf.darken_center = mo.darken_center; pf.gamma = g.gamma; pf.wrap = mo.wrap;
     pf.invert = g.invert; pf.brighten = g.brighten; pf.darken = g.darken; pf.solarize = g.solarize;
-    pf.meshx = GX; pf.meshy = GY; pf.pixelsx = c.pixelsx || 1024; pf.pixelsy = c.pixelsy || 768; pf.aspectx = 1; pf.aspecty = 1;
+    pf.meshx = GX; pf.meshy = GY; pf.pixelsx = c.pixelsx || 1024; pf.pixelsy = c.pixelsy || 768; pf.aspectx = c.aspectx || this.engine.invAX || 1; pf.aspecty = c.aspecty || this.engine.invAY || 1;
     pf.blur1_min = g.blur1_min; pf.blur2_min = g.blur2_min; pf.blur3_min = g.blur3_min;
     pf.blur1_max = g.blur1_max; pf.blur2_max = g.blur2_max; pf.blur3_max = g.blur3_max; pf.blur1_edge_darken = g.blur1_edge_darken;
   };
@@ -2725,19 +2725,17 @@ void main(){
     for (let y = 0, n = 0; y <= GY; y++) for (let x = 0; x <= GX; x++, n++) {
       const vx = x / GX * 2 - 1, vy = y / GY * 2 - 1;
       this.vx[n] = vx; this.vy[n] = vy;
-      this.vrad[n] = Math.sqrt(vx * vx + vy * vy);
-      this.vang[n] = (y === GY / 2 && x === GX / 2) ? 0 : Math.atan2(vy, vx);
       this.meshPos[n * 2] = vx; this.meshPos[n * 2 + 1] = -vy; // MilkDrop top row -> texture row 0
       this.meshUV[n * 4 + 2] = vx * 0.5 + 0.5; this.meshUV[n * 4 + 3] = -vy * 0.5 + 0.5;
-      this.meshRA[n * 2] = this.vrad[n]; this.meshRA[n * 2 + 1] = this.vang[n];
     }
     const idx = []; for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) { const a = y * (GX + 1) + x, b = a + 1, c = a + GX + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
     this.meshIdx = new Uint16Array(idx);
     this.meshVAO = this.makeMeshVAO(this.meshPos, this.meshIdx, NV);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.meshVAO.ra); gl.bufferData(gl.ARRAY_BUFFER, this.meshRA, gl.STATIC_DRAW);
+    this.aspX = this.aspY = this.invAX = this.invAY = 1;
     this.warpAlpha = -1;
     // comp mesh (CPlugin's FCGSX x FCGSY grid, duplicated seam through the center)
     this.buildCompMesh();
+    this.setAspect(1, 1);
 
     // streaming buffers for waves/shapes
     // Consecutive primitives with the same draw state are merged into one draw call (see prim()).
@@ -2774,7 +2772,7 @@ void main(){
     const n = FCGSX * FCGSY;
     const pos = new Float32Array(n * 2), uv = new Float32Array(n * 4), ra = new Float32Array(n * 2);
     const squish = (x, e) => (x > 0.5 ? Math.pow(x * 2 - 1, e) * 0.5 + 0.5 : (1 - Math.pow(1 - x * 2, e)) * 0.5);
-    this.compXY = new Float32Array(n * 2);
+    this.compXY = new Float32Array(n * 2); this.compUV = new Float32Array(n * 2);
     for (let j = 0; j < FCGSY; j++) {
       const j2 = j - Math.floor(j / (FCGSY / 2));
       const v = squish(j2 / (FCGSY - 2), 3);
@@ -2786,14 +2784,7 @@ void main(){
         const k = i + j * FCGSX;
         pos[k * 2] = sx; pos[k * 2 + 1] = sy;
         uv[k * 4] = u; uv[k * 4 + 1] = v; uv[k * 4 + 2] = u; uv[k * 4 + 3] = v;
-        const px = u * 2 - 1, py = v * 2 - 1;
-        let rad = Math.sqrt(px * px + py * py) / Math.SQRT2;
-        let ang = Math.atan2(py, px); if (ang < 0) ang += Math.PI * 2;
-        const P = Math.PI;
-        if (i === FCGSX / 2 - 1) ang = j < FCGSY / 2 - 1 ? P * 1.5 : j === FCGSY / 2 - 1 ? P * 1.25 : j === FCGSY / 2 ? P * 0.75 : P * 0.5;
-        else if (i === FCGSX / 2) ang = j < FCGSY / 2 - 1 ? P * 1.5 : j === FCGSY / 2 - 1 ? P * 1.75 : j === FCGSY / 2 ? P * 0.25 : P * 0.5;
-        else if (j === FCGSY / 2 - 1) ang = i < FCGSX / 2 - 1 ? P : ang;
-        ra[k * 2] = rad; ra[k * 2 + 1] = ang;
+        this.compUV[k * 2] = u; this.compUV[k * 2 + 1] = v;
         this.compXY[k * 2] = sx * 0.5 + 0.5; this.compXY[k * 2 + 1] = sy * 0.5 + 0.5;
       }
     }
@@ -2805,8 +2796,33 @@ void main(){
     this.compMesh = this.makeMeshVAO(pos, new Uint16Array(idx), n);
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.compMesh.uv); gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.compMesh.ra); gl.bufferData(gl.ARRAY_BUFFER, ra, gl.STATIC_DRAW);
+    this.compRA = ra;
     this.compCol = new Float32Array(n * 4);
+  };
+  // CPlugin's aspect ratio terms for a w x h render target, and everything precomputed from them:
+  // the warp mesh's rad/ang (m_vertinfo) and the comp mesh's rad/ang (UvToMathSpace).
+  Engine.prototype.setAspect = function (w, h) {
+    const AX = h > w ? w / h : 1, AY = w > h ? h / w : 1;
+    this.aspX = AX; this.aspY = AY; this.invAX = 1 / AX; this.invAY = 1 / AY;
+    for (let y = 0, n = 0; y <= GY; y++) for (let x = 0; x <= GX; x++, n++) {
+      const vx = this.vx[n], vy = this.vy[n];
+      this.vrad[n] = Math.sqrt(vx * vx * AX * AX + vy * vy * AY * AY);
+      this.vang[n] = (y === GY / 2 && x === GX / 2) ? 0 : Math.atan2(vy * AY, vx * AX);
+      this.meshRA[n * 2] = this.vrad[n]; this.meshRA[n * 2 + 1] = this.vang[n];
+    }
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.meshVAO.ra); gl.bufferData(gl.ARRAY_BUFFER, this.meshRA, gl.STATIC_DRAW);
+    const ra = this.compRA, norm = Math.sqrt(AX * AX + AY * AY), P = Math.PI;
+    for (let j = 0; j < FCGSY; j++) for (let i = 0; i < FCGSX; i++) {
+      const k = i + j * FCGSX, px = (this.compUV[k * 2] * 2 - 1) * AX, py = (this.compUV[k * 2 + 1] * 2 - 1) * AY;
+      const rad = Math.sqrt(px * px + py * py) / norm;
+      let ang = Math.atan2(py, px); if (ang < 0) ang += P * 2;
+      if (i === FCGSX / 2 - 1) ang = j < FCGSY / 2 - 1 ? P * 1.5 : j === FCGSY / 2 - 1 ? P * 1.25 : j === FCGSY / 2 ? P * 0.75 : P * 0.5;
+      else if (i === FCGSX / 2) ang = j < FCGSY / 2 - 1 ? P * 1.5 : j === FCGSY / 2 - 1 ? P * 1.75 : j === FCGSY / 2 ? P * 0.25 : P * 0.5;
+      else if (j === FCGSY / 2 - 1) ang = i < FCGSX / 2 - 1 ? P : ang;
+      ra[k * 2] = rad; ra[k * 2 + 1] = ang;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.compMesh.ra); gl.bufferData(gl.ARRAY_BUFFER, ra, gl.STATIC_DRAW);
   };
 
   /* ---- noise textures (CPlugin::AddNoiseTex / AddNoiseVol) ---- */
@@ -2899,6 +2915,7 @@ void main(){
     if (w === this.W && h === this.H) return;
     const gl = this.gl;
     this.W = w; this.H = h; this.canvas.width = w; this.canvas.height = h;
+    this.setAspect(w, h);
     const mk = (W, H) => {
       const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -3048,18 +3065,19 @@ void main(){
     const f2 = 10.54 + 3.0 * Math.cos(fWarpTime * 1.233 + 3), f3 = 11.49 + 4.0 * Math.cos(fWarpTime * 0.933 + 5);
     let zoom = pf.zoom, zoomexp = pf.zoomexp, rot = pf.rot, warp = pf.warp, cx = pf.cx, cy = pf.cy, dx = pf.dx, dy = pf.dy, sx = pf.sx, sy = pf.sy;
     let pix = st.pixelFn;
+    const AX = this.aspX, AY = this.aspY, IAX = this.invAX, IAY = this.invAY;
     for (let n = 0; n < NV; n++) {
       const vx = this.vx[n], vy = this.vy[n], rad = this.vrad[n];
       if (pix) {
-        pv.x = vx * 0.5 + 0.5; pv.y = vy * -0.5 + 0.5; pv.rad = rad; pv.ang = this.vang[n];
+        pv.x = vx * 0.5 * AX + 0.5; pv.y = vy * -0.5 * AY + 0.5; pv.rad = rad; pv.ang = this.vang[n];
         pv.zoom = pf.zoom; pv.zoomexp = pf.zoomexp; pv.rot = pf.rot; pv.warp = pf.warp; pv.cx = pf.cx; pv.cy = pf.cy;
         pv.dx = pf.dx; pv.dy = pf.dy; pv.sx = pf.sx; pv.sy = pf.sy;
         try { pix(); } catch (e) { st.errors.push("per_pixel: " + e.message); pix = st.pixelFn = null; }
         zoom = pv.zoom; zoomexp = pv.zoomexp; rot = pv.rot; warp = pv.warp; cx = pv.cx; cy = pv.cy; dx = pv.dx; dy = pv.dy; sx = pv.sx; sy = pv.sy;
       }
       const zoom2inv = 1 / Math.pow(zoom, Math.pow(zoomexp, rad * 2 - 1));
-      let u = vx * 0.5 * zoom2inv + 0.5;
-      let v = -vy * 0.5 * zoom2inv + 0.5;
+      let u = vx * AX * 0.5 * zoom2inv + 0.5;
+      let v = -vy * AY * 0.5 * zoom2inv + 0.5;
       u = (u - cx) / sx + cx;
       v = (v - cy) / sy + cy;
       u += warp * 0.0035 * Math.sin(fWarpTime * 0.333 + fWarpScaleInv * (vx * f0 - vy * f3));
@@ -3070,6 +3088,8 @@ void main(){
       u = u2 * cr - v2 * sr + cx;
       v = u2 * sr + v2 * cr + cy;
       u -= dx; v -= dy;
+      // undo the aspect ratio fix
+      u = (u - 0.5) * IAX + 0.5; v = (v - 0.5) * IAY + 0.5;
       // (MilkDrop adds a D3D9 half-texel offset here; GL samples at pixel centers already)
       out[n * 2] = isFinite(u) ? u : 0.5; out[n * 2 + 1] = isFinite(v) ? v : 0.5;
     }
@@ -3088,8 +3108,7 @@ void main(){
   Engine.prototype.applyShaderParams = function (prog, st) {
     const gl = this.gl, U = prog.uniforms, pf = st.pf;
     const t = this.time;
-    const W = this.canvas.clientWidth || this.W, H = this.canvas.clientHeight || this.H;
-    let ax = 1, ay = 1; if (W > H) ay = H / W; else ax = W / H;
+    const W = this.W, ax = this.aspX, ay = this.aspY;
     const [mn, mx] = this.blurMinMax(pf);
     const presetTime = (this.time - this.presetStart) % 10000;
     const progress = Math.max(0, Math.min(1, (this.time - this.presetStart) / Math.max(0.001, this.nextPresetTime - this.presetStart)));
@@ -3278,12 +3297,12 @@ void main(){
         const a1 = clamp01(p.a) * alphaMult, a2 = clamp01(p.a2) * alphaMult;
         const textured = Math.floor(p.textured) !== 0;
         const additive = Math.floor(p.additive) !== 0;
-        const P = SHP;
+        const P = SHP, AY = this.aspY;
         const rad = p.rad, tz = p.tex_zoom, a0 = p.ang + Math.PI * 0.25, ta0 = p.tex_ang + Math.PI * 0.25;
         for (let j = 0; j <= sides; j++) {
           const t = j / sides * Math.PI * 2, ang = t + a0, tang = t + ta0;
-          P[j * 4] = x0 + rad * Math.cos(ang); P[j * 4 + 1] = y0 + rad * Math.sin(ang);
-          P[j * 4 + 2] = 0.5 + 0.5 * Math.cos(tang) / tz; P[j * 4 + 3] = 0.5 + 0.5 * Math.sin(tang) / tz;
+          P[j * 4] = x0 + rad * Math.cos(ang) * AY; P[j * 4 + 1] = y0 + rad * Math.sin(ang);
+          P[j * 4 + 2] = 0.5 + 0.5 * Math.cos(tang) / tz * AY; P[j * 4 + 3] = 0.5 + 0.5 * Math.sin(tang) / tz;
         }
         const r1 = clamp01(p.r), g1 = clamp01(p.g), b1 = clamp01(p.b), r2 = clamp01(p.r2), g2 = clamp01(p.g2), b2 = clamp01(p.b2);
         this.prim(gl.TRIANGLES, additive, 1, textured, sides * 3);
@@ -3366,7 +3385,7 @@ void main(){
         pp.sample = j * jm; pp.value1 = A[j]; pp.value2 = B[j]; pp.x = 0.5 + A[j]; pp.y = 0.5 + B[j];
         pp.r = p.r; pp.g = p.g; pp.b = p.b; pp.a = p.a;
         if (pfn) try { pfn(); } catch (e) { pfn = wv.pointFn = null; }
-        TMP.x[j] = pp.x * 2 - 1; TMP.y[j] = pp.y * -2 + 1;
+        TMP.x[j] = (pp.x * 2 - 1) * this.invAX; TMP.y[j] = (pp.y * -2 + 1) * this.invAY;
         TMP.c[j * 4] = clamp01(pp.r); TMP.c[j * 4 + 1] = clamp01(pp.g); TMP.c[j * 4 + 2] = clamp01(pp.b); TMP.c[j * 4 + 3] = clamp01(pp.a * alphaMult);
       }
       let xs = TMP.x, ys = TMP.y, cols = TMP.c, count = nSamples, smoothed = false;
@@ -3416,7 +3435,7 @@ void main(){
     const texSizeAlpha = (a256, a512, a1024, a2048) => { const s = this.W; return s <= 384 ? a256 : s <= 768 ? a512 : s <= 1536 ? a1024 : a2048; };
     const X = TMP.x, Y = TMP.y;
     let n = NUM_WAVE, brk = -1;
-    const AX = 1, AY = 1; // square-texture aspect (see header)
+    const AX = this.aspX, AY = this.aspY;
     switch (mode) {
       case 0: {
         n = NUM_WAVE / 2; const off = (NUM_WAVE - n) / 2; modVol();
@@ -3518,7 +3537,7 @@ void main(){
     const gl = this.gl, pf = st.pf;
     if (pf.darken_center) {
       const h = 0.05, a = 3 / 32;
-      const pts = [[-h, 0], [0, -h], [h, 0], [0, h], [-h, 0]];
+      const hx = h * this.aspY, pts = [[-hx, 0], [0, -h], [hx, 0], [0, h], [-hx, 0]];
       this.prim(gl.TRIANGLES, false, 1, false, 12);
       for (let i = 0; i < 4; i++) { this.vtx(0, 0, 0, 0, 0, a); this.vtx(pts[i][0], pts[i][1], 0, 0, 0, 0); this.vtx(pts[i + 1][0], pts[i + 1][1], 0, 0, 0, 0); }
     }
@@ -3632,6 +3651,7 @@ void main(){
     ctx.bass = audio.immRel[0]; ctx.mid = audio.immRel[1]; ctx.treb = audio.immRel[2];
     ctx.bass_att = audio.avgRel[0]; ctx.mid_att = audio.avgRel[1]; ctx.treb_att = audio.avgRel[2];
     ctx.pixelsx = this.canvas.clientWidth || this.W; ctx.pixelsy = this.canvas.clientHeight || this.H;
+    ctx.aspectx = this.invAX; ctx.aspecty = this.invAY; // CPlugin hands presets the inverse terms
     this.draws = 0;
     const st = this.state;
     let old = this.oldState, mix = 1, linear = 1;
