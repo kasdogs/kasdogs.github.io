@@ -4479,9 +4479,9 @@ void main(){
   const fmt = (s) => { s = Math.max(0, s | 0); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
   function updateHud() {
     let src = audio.status || "";
-    if (audio.mode === "file" && audio.file) src = audio.file.name + " · " + fmt(audio.filePosition()) + " / " + fmt(audio.fileDuration()) + (audio.file.playing ? "" : " · paused");
-    else if (audio.mode === "stream" && audio.stream && audio.stream.paused) src = "Stream paused";
-    else if (audio.mode === "mic" && audio.mic && audio.mic.muted) src = "Input muted";
+    if (audio.mode === "file" && audio.file) src = audio.file.name + " · " + fmt(audio.filePosition()) + " / " + fmt(audio.fileDuration()) + (audio.file.playing ? "" : " · paused, demo beat showing");
+    else if (audio.mode === "stream" && audio.stream && audio.stream.paused) src = "Stream paused · demo beat showing";
+    else if (audio.mode === "mic" && audio.mic && audio.mic.muted) src = "Input muted · demo beat showing";
     $("#trkTime").textContent = audio.mode === "file" && audio.file ? fmt(audio.filePosition()) + " / " + fmt(audio.fileDuration()) : "";
     $("#src").textContent = src;
     const st = engine.latest();
