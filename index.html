@@ -42,14 +42,15 @@ body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--mon
 
 .hud{transition:opacity .45s;position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:max(18px,env(safe-area-inset-left,0px));right:max(64px,env(safe-area-inset-right,0px));
   pointer-events:none;display:grid;gap:5px;text-shadow:0 1px 6px rgba(0,0,0,.9);max-width:calc(100% - 420px)}
-.title{display:flex;align-items:baseline;gap:10px;min-width:0}
-.title .num{font:500 11px/1 var(--mono);color:var(--accent);letter-spacing:.08em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.title .name{font:600 clamp(18px,2.8vw,28px)/1.15 var(--display);letter-spacing:.02em;text-wrap:balance;min-width:0;overflow-wrap:anywhere}
+/* the title flows as text, so the arrow follows the end of the last line instead of the far edge */
+.title{display:block;min-width:0;font:600 clamp(18px,2.8vw,28px)/1.15 var(--display);text-wrap:balance}
+.title .num{margin-right:10px;font:500 11px/1 var(--mono);color:var(--accent);letter-spacing:.08em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.title .name{letter-spacing:.02em;overflow-wrap:anywhere}
 .meta,.meters{font:400 12px/1.4 var(--mono);color:var(--dim);min-width:0;overflow-wrap:anywhere}
 .meters{font-variant-numeric:tabular-nums}
 .meters b{color:var(--ink);font-weight:500}
 /* collapse arrow: sits at the end of the title row; collapsed, it's all that's left, in the top-left corner */
-.hudToggle{pointer-events:auto;align-self:flex-start;flex:none;width:26px;height:26px;padding:0;margin-top:2px;display:grid;place-items:center;
+.hudToggle{pointer-events:auto;width:26px;height:26px;padding:0;margin-left:10px;display:inline-grid;place-items:center;vertical-align:.12em;
   color:var(--ink);background:var(--glass);border:1px solid var(--line);border-radius:3px;text-shadow:none}
 .hudToggle svg{transition:transform .25s ease}
 body.hudoff .hudToggle svg{transform:rotate(180deg)}
