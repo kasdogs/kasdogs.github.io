@@ -294,17 +294,17 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <dt>Shift + Space</dt><dd>Hard cut to a random preset</dd>
       <dt>→ / .</dt><dd>Next preset in the list</dd>
       <dt>← / ,</dt><dd>Previous preset</dd>
-      <dt>A</dt><dd>Randomize all preset elements</dd>
-      <dt>R</dt><dd>Randomize preset shaders</dd>
+      <dt>R</dt><dd>Randomize all preset elements</dd>
+      <dt>Shift + R</dt><dd>Randomize preset shaders</dd>
       <dt>L</dt><dd>Lock the current preset</dd>
       <dt>F</dt><dd>Fullscreen</dd>
     </dl>
     <p class="h">Settings</p>
     <dl>
-      <dt>S</dt><dd>Open or close settings</dd>
-      <dt>P</dt><dd>Presets</dd>
-      <dt>M</dt><dd>Mash-up</dd>
-      <dt>O</dt><dd>Add audio files to the queue</dd>
+      <dt>S</dt><dd>Open or close settings menu</dd>
+      <dt>P</dt><dd>Open presets menu</dd>
+      <dt>M</dt><dd>Open mash-up menu</dd>
+      <dt>A</dt><dd>Open audio menu</dd>
       <dt>K</dt><dd>Play / pause the queue</dd>
       <dt>? / F1</dt><dd>Help / hotkeys</dd>
       <dt>Esc</dt><dd>Close settings or this panel</dd>
@@ -5305,13 +5305,12 @@ void main(){
     if (k === " ") goRandom(e.shiftKey); // Shift+Space: hard cut
     else if (k === "ArrowRight" || k === ".") goForward(() => load(curIndex + 1, {viaNext: true}));
     else if (k === "ArrowLeft" || k === ",") goPrev();
-    else if (k === "a" || k === "A") randomizeAll();
-    else if (k === "r" || k === "R") randomizeShaders();
+    else if (k === "r" || k === "R") { if (e.shiftKey) randomizeShaders(); else randomizeAll(); }
+    else if (k === "a" || k === "A") openDrawer("audio", true);
     else if (k === "l" || k === "L") setLock(!locked);
     else if (k === "p" || k === "P") openDrawer("presets", true);
     else if (k === "m" || k === "M") openDrawer("mash", true);
     else if (k === "s" || k === "S") toggleSettings();
-    else if (k === "o" || k === "O") { audio.ensure(); $("#fileAudio").click(); }
     else if (k === "k" || k === "K") togglePlay();
     else if (k === "f" || k === "F") fullscreen();
     else if (k === "?" || k === "F1") toggleHelp();
