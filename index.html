@@ -128,12 +128,13 @@ button.icon[aria-pressed="true"] .i-on{display:none}
 .chip .go{padding:7px 4px 7px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:22em}
 .chip .x{padding:4px 9px;color:var(--dim);font-size:14px;line-height:1}
 .chip .x:hover{color:#ff786e}
-.chip.confirm{border-color:#ff786e;background:rgba(255,120,110,.16)}
-.chip.confirm .go,.chip.confirm .x{color:#ff9c94}
-.chip.confirm .x{font:600 13px/1 var(--mono)}
 .chip:hover{border-color:var(--accent)}
 .chip.on{border-color:var(--accent);background:rgba(134,200,255,.14)}
 .chip.on .go{color:#fff}
+/* asking to confirm a delete: red wins over the active and hover styles */
+.chip.confirm,.chip.confirm:hover{border-color:#ff786e;background:rgba(255,120,110,.16)}
+.chip.confirm .go,.chip.confirm .x{color:#ff9c94}
+.chip.confirm .x{font:600 13px/1 var(--mono)}
 .volrow input[type=range]{flex:1;min-width:0}
 .gainval{color:var(--ink);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;margin-left:6px}
 .volrow input[type=range]:disabled{opacity:.35;filter:grayscale(1);cursor:not-allowed}
