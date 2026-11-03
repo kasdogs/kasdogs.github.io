@@ -159,6 +159,10 @@ button.icon[aria-pressed="true"] .i-on{display:none}
 .confirmrow > #clearLibYes{flex:none;white-space:nowrap;border-color:var(--warn);color:var(--warn)}
 .box{border:1px solid var(--line);border-radius:4px;padding:10px 12px;display:grid;gap:8px}
 .status{font:600 14px/1.45 var(--mono);color:var(--ink);margin:0;min-width:0;overflow-wrap:anywhere}
+.demoNote{font:11px/1.4 var(--mono);color:var(--dim);margin:-4px 0 0;letter-spacing:.04em}
+.demoNote::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent,#6aa8ff);margin-right:7px;vertical-align:1px;animation:demoPulse 0.968s ease-out infinite}
+@keyframes demoPulse{0%{opacity:1}100%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.demoNote::before{animation:none}}
 input[type=text],input[type=url],input[type=search]{width:100%;min-width:0;font-weight:400}
 select{max-width:100%}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -428,6 +432,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <p class="note vunote" id="vuNote" hidden></p>
     </div>
     <p class="status" id="audioStatus" role="status">A built-in silent beat drives the visuals.</p>
+    <p class="demoNote" id="demoNote" hidden>Demo beat showing</p>
 
     <div id="srcDemo" class="field" hidden><p class="note">Pick a source above to visualize your own audio.</p></div>
 
@@ -4974,6 +4979,12 @@ void main(){
     rp.querySelector(".rpt1").hidden = rmode !== "one";
     $("#trkShuffle").setAttribute("aria-pressed", String(audio.shuffle));
     renderQueue();
+    // the demo beat takes over while the active source is muted or paused
+    const dn = $("#demoNote"), why =
+      audio.mode === "mic" && audio.mic && audio.mic.muted ? "input is muted" :
+      audio.mode === "stream" && audio.stream && audio.stream.paused ? "stream is paused" :
+      audio.mode === "file" && audio.file && !audio.file.playing ? "track is paused" : "";
+    dn.hidden = !why; if (why) dn.textContent = "Demo beat showing while the " + why;
     // input mute, stream pause
     const mm = $("#micMute"), micOn = audio.mode === "mic" && audio.mic;
     mm.disabled = !micOn; const mu = !!(micOn && audio.mic.muted);
