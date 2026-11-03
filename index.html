@@ -421,6 +421,11 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   const CLOSE = 0.00001;
   const MEGABUF_SIZE = 1 << 20;
   const LOOP_MAX = 1048576;
+  // reg00..reg99 are ns-eel's global registers: one set shared by every piece of preset code
+  // (per-frame, per-pixel, each wave and shape), so presets use them to pass values around.
+  const REGS = Object.create(null);
+  const isReg = (n) => /^reg\d\d$/.test(n);
+  const store = (v, n) => (isReg(n) ? REGS : v);
 
   /* ---------- tokenizer ---------- */
   function tokenize(src) {
@@ -623,9 +628,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     switch (node.k) {
       case "num": { const c = node.v; return () => c; }
       case "var": {
-        const name = node.name;
-        if (!(name in v)) v[name] = 0;
-        return () => v[name];
+        const name = node.name, o = store(v, name);
+        if (!(name in o)) o[name] = 0;
+        return () => o[name];
       }
       case "seq": {
         const fs = node.items.map((n) => gen(n, ctx, warn));
@@ -662,13 +667,13 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
         const op = node.op;
         const f = op === "=" ? null : bin[op.slice(0, -1)];
         if (node.target.k === "var") {
-          const name = node.target.name;
-          if (!(name in v)) v[name] = 0;
-          if (!f) return () => (v[name] = val());
-          if (op === "+=") return () => (v[name] += val());
-          if (op === "-=") return () => (v[name] -= val());
-          if (op === "*=") return () => (v[name] *= val());
-          return () => (v[name] = f(v[name], val()));
+          const name = node.target.name, o = store(v, name);
+          if (!(name in o)) o[name] = 0;
+          if (!f) return () => (o[name] = val());
+          if (op === "+=") return () => (o[name] += val());
+          if (op === "-=") return () => (o[name] -= val());
+          if (op === "*=") return () => (o[name] *= val());
+          return () => (o[name] = f(o[name], val()));
         }
         const idx = gen(node.target.idx, ctx, warn);
         const get = node.target.g ? ctx.gmem : ctx.mem;
@@ -804,16 +809,17 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   }
   function bindNative(ast, vars, ctx, warn) {
     const {body, names} = genJS(ast, warn);
-    const load = [], store = [];
+    const load = [], stores = [];
     for (const [n, L] of names) {
-      if (!(n in vars)) vars[n] = 0;
+      const reg = isReg(n), o = reg ? REGS : vars, obj = reg ? "R" : "V";
+      if (!(n in o)) o[n] = 0;
       const key = JSON.stringify(n);
-      load.push(L + "=V[" + key + "]"); store.push("V[" + key + "]=" + L);
+      load.push(L + "=" + obj + "[" + key + "]"); stores.push(obj + "[" + key + "]=" + L);
     }
-    const src = '"use strict";let t' + (load.length ? "," + load.join(",") : "") + ";\ntry{return " + body + ";}finally{" + store.join(";") + "}";
-    const f = new Function("V", "M", "G", "H", src);
+    const src = '"use strict";let t' + (load.length ? "," + load.join(",") : "") + ";\ntry{return " + body + ";}finally{" + stores.join(";") + "}";
+    const f = new Function("V", "M", "G", "H", "R", src);
     const M = ctx.mem, G = ctx.gmem;
-    return () => f(vars, M, G, H);
+    return () => f(vars, M, G, H, REGS);
   }
 
   function usesMem(node) {
@@ -852,7 +858,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     return {mem: () => buf || (buf = new Float64Array(MEGABUF_SIZE)), gmem: globalMem};
   }
 
-  const EEL = {compile, parse, tokenize, newMemContext, mode: "auto", canNative};
+  const EEL = {compile, parse, tokenize, newMemContext, mode: "auto", canNative, regs: REGS};
   if (typeof module !== "undefined" && module.exports) module.exports = EEL;
   root.EEL = EEL;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -1976,6 +1982,9 @@ ${Array.from({length: 32}, (_, i) => "#define q" + (i + 1) + " _q" + "abcdefgh"[
     text = String(text || "").replace(/\r\n?/g, "\n").replace(/\u0001/g, "\n");
     const sb = text.indexOf("shader_body");
     if (sb < 0) return {ok: false, error: "No shader_body found"};
+    // MilkDrop replaces the shader's last '}' with its own ending, so any text after it (signatures, notes) is ignored
+    const close = text.lastIndexOf("}");
+    if (close > sb) text = text.slice(0, close + 1);
     const src = text.slice(0, sb) + "void __ps_main__()" + text.slice(sb + 11);
     const tr = new Translator(kind);
     try {
