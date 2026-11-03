@@ -490,6 +490,11 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     "^": [100, "R"]
   };
   const ASSIGN = new Set(["=", "+=", "-=", "*=", "/=", "%=", "^=", "|=", "&="]);
+  const ALIAS = {_if: "if", _not: "bnot", _equal: "equal", _below: "below", _above: "above", _and: "band", _or: "bor",
+    _mem: "megabuf", _gmem: "gmegabuf"};
+  // assign(a, b) and the _xxxop(a, b) forms are assignments to their first argument
+  const ASSIGN_FN = {assign: "=", _set: "=", _addop: "+=", _subop: "-=", _mulop: "*=", _divop: "/=", _modop: "%=",
+    _orop: "|=", _andop: "&=", _powop: "^="};
 
   function parse(src) {
     const toks = tokenize(src);
@@ -573,6 +578,14 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
           }
           if (!isOp(")")) err("Expected ')'");
           next();
+          // ns-eel's internal names (nseel-eval.c / nseel-compiler.c), usable directly in presets
+          let fname = ALIAS[t.v] || t.v;
+          if (ASSIGN_FN[fname]) {
+            const target = args[0] || {k: "num", v: 0}, val = args[1] || {k: "num", v: 0};
+            if (target.k === "var" || target.k === "mem") return {k: "assign", op: ASSIGN_FN[fname], target, val};
+            return {k: "seq", items: [target, val]}; // not assignable: evaluate both, like a plain expression
+          }
+          t.v = fname;
           if (t.v === "megabuf" || t.v === "gmegabuf") return maybeAssign({k: "mem", g: t.v === "gmegabuf", idx: args[0] || {k: "num", v: 0}});
           return {k: "call", f: t.v, args};
         }
@@ -595,13 +608,17 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 
   /* ---------- helpers ---------- */
   const tru = (x) => x > CLOSE || x < -CLOSE;
+  // pow/log results that aren't finite (negative base with a fractional power, log of 0 or a negative)
+  // become 0, so a NaN can't spread into zoom, colours or the q variables
+  const fin = (x) => (x - x === 0 ? x : 0);
+  const safePow = (a, b) => fin(Math.pow(a, b));
   const toInt = (x) => (x >= 0 ? Math.floor(x) : Math.ceil(x));
   function memIndex(x) { const i = Math.floor(x + 0.0001); return i >= 0 && i < MEGABUF_SIZE ? i : -1; }
 
   const FN1 = {
     sin: Math.sin, cos: Math.cos, tan: Math.tan, asin: Math.asin, acos: Math.acos, atan: Math.atan,
     sqr: (x) => x * x, sqrt: (x) => Math.sqrt(Math.abs(x)), exp: Math.exp,
-    log: (x) => Math.log(x), log10: (x) => Math.log10(x),
+    log: (x) => fin(Math.log(x)), log10: (x) => fin(Math.log10(x)),
     abs: Math.abs, sign: (x) => (x > 0 ? 1 : x < 0 ? -1 : 0),
     floor: Math.floor, int: Math.floor, ceil: Math.ceil,
     invsqrt: (x) => 1 / Math.sqrt(Math.abs(x) || 1e-30),
@@ -609,18 +626,21 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     bnot: (x) => (tru(x) ? 0 : 1)
   };
   const FN2 = {
-    atan2: Math.atan2, pow: Math.pow, min: Math.min, max: Math.max,
+    atan2: Math.atan2, pow: safePow, min: Math.min, max: Math.max,
     sigmoid: (x, c) => { const t = 1 + Math.exp(-x * c); return Math.abs(t) > CLOSE ? 1 / t : 0; },
     band: (a, b) => (tru(a) && tru(b) ? 1 : 0), bor: (a, b) => (tru(a) || tru(b) ? 1 : 0),
     equal: (a, b) => (Math.abs(a - b) < CLOSE ? 1 : 0),
     above: (a, b) => (a > b ? 1 : 0), below: (a, b) => (a < b ? 1 : 0),
-    fmod: (a, b) => (b === 0 ? 0 : a % b)
+    fmod: (a, b) => (b === 0 ? 0 : a % b),
+    _noteq: (a, b) => (Math.abs(a - b) < CLOSE ? 0 : 1),
+    _aboeq: (a, b) => (a >= b ? 1 : 0), _beleq: (a, b) => (a <= b ? 1 : 0),
+    _mod: (a, b) => { a = toInt(a); b = toInt(b); return b === 0 ? 0 : a % b; }
   };
   const bin = {
     "+": (a, b) => a + b, "-": (a, b) => a - b, "*": (a, b) => a * b,
     "/": (a, b) => (b === 0 ? 0 : a / b),
     "%": (a, b) => { a = toInt(a); b = toInt(b); return b === 0 ? 0 : a % b; },
-    "^": Math.pow,
+    "^": safePow,
     "|": (a, b) => (toInt(a) | toInt(b)), "&": (a, b) => (toInt(a) & toInt(b)),
     "==": (a, b) => (Math.abs(a - b) < CLOSE ? 1 : 0), "!=": (a, b) => (Math.abs(a - b) < CLOSE ? 0 : 1),
     "<": (a, b) => (a < b ? 1 : 0), ">": (a, b) => (a > b ? 1 : 0),
@@ -727,7 +747,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   /* ---------- native JS generator ---------- */
   // Every EEL variable becomes a JS local, loaded from the vars object on entry and written back on exit.
   const H = {
-    tru, toInt, mi: memIndex,
+    tru, toInt, mi: memIndex, pow: safePow,
     div: (a, b) => (b === 0 ? 0 : a / b),
     mod: bin["%"], bor: bin["|"], band: bin["&"],
     eq: (a, b) => (Math.abs(a - b) < CLOSE ? 1 : 0), ne: (a, b) => (Math.abs(a - b) < CLOSE ? 0 : 1),
@@ -739,7 +759,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     memset: null, memcpy: null, FN1, FN2, bin
   };
   const MATH1 = {sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1, exp: 1, abs: 1, floor: 1, ceil: 1};
-  const MATH2 = {atan2: 1, pow: 1, min: 1, max: 1};
+  const MATH2 = {atan2: 1, min: 1, max: 1};
   const OPNAME = {"%": "mod", "|": "bor", "&": "band", "==": "eq", "!=": "ne", "/": "div"};
 
   function genJS(ast, warn) {
@@ -760,7 +780,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
           if (op === "&&") return "(H.tru(" + a + ")&&H.tru(" + b + ")?1:0)";
           if (op === "||") return "(H.tru(" + a + ")||H.tru(" + b + ")?1:0)";
           if (op === "<" || op === ">" || op === "<=" || op === ">=") return "(" + a + op + b + "?1:0)";
-          if (op === "^") return "Math.pow(" + a + "," + b + ")";
+          if (op === "^") return "H.pow(" + a + "," + b + ")";
           return "H." + OPNAME[op] + "(" + a + "," + b + ")";
         }
         case "mem": return "H.rd(" + (node.g ? "G" : "M") + ",H.mi(" + e(node.idx) + "))";
@@ -770,7 +790,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
             const L = local(node.target.name);
             if (op === "=") return "(" + L + "=" + val + ")";
             if (op === "+=" || op === "-=" || op === "*=") return "(" + L + op + val + ")";
-            if (op === "^=") return "(" + L + "=Math.pow(" + L + "," + val + "))";
+            if (op === "^=") return "(" + L + "=H.pow(" + L + "," + val + "))";
             return "(" + L + "=H." + OPNAME[op.slice(0, -1)] + "(" + L + "," + val + "))";
           }
           const m = node.target.g ? "G" : "M", idx = "H.mi(" + e(node.target.idx) + ")";
@@ -1136,7 +1156,26 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   }
 
   /* ======================= preprocessor ======================= */
+  // Remove comments before the line-by-line pass, so a /* ... */ spanning several lines can't be split up.
+  // Line breaks inside block comments are kept (line numbers stay right); a // comment can't open a /* one.
+  function stripComments(src) {
+    let out = "", i = 0;
+    const n = src.length;
+    while (i < n) {
+      const c = src[i], d = src[i + 1];
+      if (c === "/" && d === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+      if (c === "/" && d === "*") {
+        const e = src.indexOf("*/", i + 2), end = e < 0 ? n : e + 2;
+        const nls = src.slice(i, end).split("\n").length - 1;
+        out += nls ? "\n".repeat(nls) : " ";
+        i = end; continue;
+      }
+      out += c; i++;
+    }
+    return out;
+  }
   function preprocess(src, predefined) {
+    src = stripComments(src);
     // join line continuations
     src = src.replace(/\\\r?\n/g, " ");
     const lines = src.split("\n");
@@ -1186,14 +1225,29 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
   }
   function expand(toks, macros, disabled, depth) {
     if (depth > 64) return toks;
+    toks = toks.slice();
     const out = [];
+    // An expansion that ends in the name of a function-like macro (#define F GetBlur1) has to take its
+    // arguments from the tokens that follow, as a C preprocessor's rescan does: hand that name back to the stream.
+    const emit = (exp, self) => {
+      let k = exp.length - 1;
+      while (k >= 0 && (exp[k].t === "ws" || exp[k].t === "nl")) k--;
+      const last = exp[k];
+      if (k >= 0 && last.t === "id" && last.v !== self && !disabled.has(last.v) && macros.has(last.v) && macros.get(last.v).params) {
+        out.push(...exp.slice(0, k));
+        return last;
+      }
+      out.push(...exp);
+      return null;
+    };
     for (let i = 0; i < toks.length; i++) {
       const t = toks[i];
       if (t.t !== "id" || disabled.has(t.v) || !macros.has(t.v)) { out.push(t); continue; }
       const mac = macros.get(t.v);
       if (!mac.params) {
         const dis = new Set(disabled); dis.add(t.v);
-        out.push(...expand(pasteTokens(mac.body), macros, dis, depth + 1));
+        const back = emit(expand(pasteTokens(mac.body), macros, dis, depth + 1), t.v);
+        if (back) toks.splice(i + 1, 0, back);
         continue;
       }
       // function-like: need '('
@@ -1218,8 +1272,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
         else body.push(b);
       }
       const dis = new Set(disabled); dis.add(t.v);
-      out.push(...expand(pasteTokens(body), macros, dis, depth + 1));
+      const back = emit(expand(pasteTokens(body), macros, dis, depth + 1), t.v);
       i = k;
+      if (back) toks.splice(i + 1, 0, back);
     }
     return out;
   }
