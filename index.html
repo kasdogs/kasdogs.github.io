@@ -4617,8 +4617,17 @@ void main(){
     if (base.length > 120) base = base.slice(0, 117).trim() + "...";
     const name = base + " (" + stamp + ")";
     const text = window.MILK.serialize(st.spec, name);
-    addPreset(name, text, false); sortLib();
+    const it = addPreset(name, text, false); sortLib();
     if (settings.keep) DB.put("presets", [{key: name.toLowerCase(), name, text}]);
+    // Switch to the saved preset. What's on screen already is exactly this preset, so instead of reloading
+    // (which would restart its equations) the running state simply becomes it: no jump, and it can be favorited.
+    const idx = lib.indexOf(it);
+    if (idx >= 0) {
+      curIndex = idx; mash.slots = [idx, idx, idx, idx, idx];
+      st.spec.isMash = false; st.spec.name = name;
+      noteShown(true);
+      showTitle(); renderBins();
+    }
     refreshLists();
     try {
       const url = URL.createObjectURL(new Blob([text], {type: "application/octet-stream"}));
@@ -4626,7 +4635,7 @@ void main(){
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (e) {}
-    const msg = "Saved \u201c" + name + "\u201d to your presets and downloaded it.";
+    const msg = "Saved \u201c" + name + "\u201d to your presets and downloaded it. It's now the current preset, so you can star it.";
     $("#exportNote").textContent = ""; toast(msg, "info", 7000);
   }
   $("#mashExport").addEventListener("click", exportMash);
