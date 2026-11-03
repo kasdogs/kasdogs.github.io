@@ -294,7 +294,8 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <dt>Shift + Space</dt><dd>Hard cut to a random preset</dd>
       <dt>→ / .</dt><dd>Next preset in the list</dd>
       <dt>← / ,</dt><dd>Previous preset</dd>
-      <dt>A</dt><dd>Random preset with a random warp and comp shader</dd>
+      <dt>A</dt><dd>Randomize all preset elements</dd>
+      <dt>R</dt><dd>Randomize preset shaders</dd>
       <dt>L</dt><dd>Lock the current preset</dd>
       <dt>F</dt><dd>Fullscreen</dd>
     </dl>
@@ -4403,9 +4404,15 @@ void main(){
   const goNext = (opts) => load(settings.shuffle ? randomIndex() : curIndex + 1, opts);
 
   const goRandom = (hard) => load(randomIndex(), {hard});
-  function goAggregate() { // MilkDrop 'A': random preset + random warp shader + random comp shader
-    const a = randomIndex(), w = randomIndex(), c = randomIndex();
-    load(a, {parts: [a, a, a, w, c], hard: true});
+  // A: every element (general, motion, waves/shapes, warp, comp) from a different random preset
+  function randomizeAll() { mashRandom(true); }
+  // R: new random warp and comp shaders; the rest of what's playing stays as it is
+  function randomizeShaders() {
+    if (lib.length < 2) return;
+    const pick = () => Math.floor(Math.random() * lib.length);
+    mash.slots[3] = pick(); mash.slots[4] = pick();
+    mashList.set(mashList.data, mash.slots[mash.active]);
+    applyMash();
   }
   function applyMash(opts) {
     try { engine.loadParts(partsFrom(mash.slots), {mashup: true, blend: opts && opts.blend}); }
@@ -5298,7 +5305,8 @@ void main(){
     if (k === " ") goRandom(e.shiftKey); // Shift+Space: hard cut
     else if (k === "ArrowRight" || k === ".") goForward(() => load(curIndex + 1, {viaNext: true}));
     else if (k === "ArrowLeft" || k === ",") goPrev();
-    else if (k === "a" || k === "A") goAggregate();
+    else if (k === "a" || k === "A") randomizeAll();
+    else if (k === "r" || k === "R") randomizeShaders();
     else if (k === "l" || k === "L") setLock(!locked);
     else if (k === "p" || k === "P") openDrawer("presets", true);
     else if (k === "m" || k === "M") openDrawer("mash", true);
