@@ -3028,11 +3028,12 @@ void main(){
     st.finishShaders();
     if (opts.mashup && this.state) {
       // mash-ups keep the preset clock; they apply in place (like the original) unless a blend is asked for
-      if (opts.blend > 0) { this.oldState = this.state; this.state = st; this.blendStart = this.time; this.blendDur = opts.blend; }
+      if (opts.blend > 0) { this.oldState = this.state; this.state = st; this.blendStart = this.time; this.blendDur = opts.blend; this.randomizeBlendPattern(); }
       else { this.state = st; this.oldState = null; this.blendDur = 0; }
     } else if (this.state && opts.blend > 0) {
       this.oldState = this.state; this.state = st; this.blendStart = this.time; this.blendDur = opts.blend;
       this.presetStart = this.time;
+      this.randomizeBlendPattern();
     } else { this.state = st; this.oldState = null; this.blendDur = 0; this.presetStart = this.time; }
     if (opts.duration) this.nextPresetTime = this.presetStart + opts.duration;
     this.missingTextures.clear();
@@ -3150,14 +3151,85 @@ void main(){
   };
 
   /* ---- warp pass ---- */
+  /* ---- transition patterns (CPlugin::RandomizeBlendPattern / GenPlasma) ----
+   * Each warp-grid vertex gets its own blend curve: mix = clamp(a * progress + c, 0, 1). That mix blends the two
+   * presets' motion at the vertex and is the new preset's opacity there, in the warp pass and (interpolated) in
+   * the composite. MilkDrop picks a directional wipe, a plasma dissolve or a radial in/out; never a flat fade.
+   * The grid is treated as square, like the rest of the renderer. */
+  Engine.prototype.randomizeBlendPattern = function () {
+    const A = this.blendA || (this.blendA = new Float32Array(NV)), C = this.blendC || (this.blendC = new Float32Array(NV));
+    const R = Math.random, type = 1 + Math.floor(R() * 3);
+    const set = (n, t, band) => { const ib = 1 / band; A[n] = ib * (1 + band); C[n] = -ib + ib * t; };
+    if (type === 1) { // directional wipe
+      const ang = R() * 6.28, vx = Math.cos(ang), vy = Math.sin(ang), band = 0.1 + 0.2 * R();
+      for (let y = 0, n = 0; y <= GY; y++) for (let x = 0; x <= GX; x++, n++) {
+        let t = (x / GX - 0.5) * vx + (y / GY - 0.5) * vy + 0.5;
+        t = (t - 0.5) / Math.SQRT2 + 0.5;
+        set(n, t, band);
+      }
+    } else if (type === 2) { // plasma
+      const band = 0.12 + 0.13 * R();
+      C[0] = R(); C[GX] = R(); C[GY * (GX + 1)] = R(); C[GY * (GX + 1) + GX] = R();
+      const gen = (x0, x1, y0, y1, dt) => {
+        const mx = (x0 + x1) >> 1, my = (y0 + y1) >> 1, W1 = GX + 1;
+        let t00 = C[y0 * W1 + x0], t01 = C[y0 * W1 + x1], t10 = C[y1 * W1 + x0], t11 = C[y1 * W1 + x1];
+        if (y1 - y0 >= 2) {
+          if (x0 === 0) C[my * W1 + x0] = 0.5 * (t00 + t10) + (R() * 2 - 1) * dt;
+          C[my * W1 + x1] = 0.5 * (t01 + t11) + (R() * 2 - 1) * dt;
+        }
+        if (x1 - x0 >= 2) {
+          if (y0 === 0) C[y0 * W1 + mx] = 0.5 * (t00 + t01) + (R() * 2 - 1) * dt;
+          C[y1 * W1 + mx] = 0.5 * (t10 + t11) + (R() * 2 - 1) * dt;
+        }
+        if (y1 - y0 >= 2 && x1 - x0 >= 2) {
+          t00 = C[my * W1 + x0]; t01 = C[my * W1 + x1]; t10 = C[y0 * W1 + mx]; t11 = C[y1 * W1 + mx];
+          C[my * W1 + mx] = 0.25 * (t10 + t11 + t00 + t01) + (R() * 2 - 1) * dt;
+          gen(x0, mx, y0, my, dt * 0.5); gen(mx, x1, y0, my, dt * 0.5);
+          gen(x0, mx, my, y1, dt * 0.5); gen(mx, x1, my, y1, dt * 0.5);
+        }
+      };
+      gen(0, GX, 0, GY, 0.25);
+      let mn = Infinity, mxv = -Infinity;
+      for (let n = 0; n < NV; n++) { mn = Math.min(mn, C[n]); mxv = Math.max(mxv, C[n]); }
+      const mult = 1 / ((mxv - mn) || 1);
+      for (let n = 0; n < NV; n++) set(n, (C[n] - mn) * mult, band);
+    } else { // radial, outside-in or inside-out
+      const band = 0.02 + 0.14 * R() + 0.34 * R(), dir = R() < 0.5 ? 1 : -1;
+      for (let y = 0, n = 0; y <= GY; y++) for (let x = 0; x <= GX; x++, n++) {
+        const dx = x / GX - 0.5, dy = y / GY - 0.5;
+        let t = Math.sqrt(dx * dx + dy * dy) * 1.41421;
+        if (dir === -1) t = 1 - t;
+        set(n, t, band);
+      }
+    }
+  };
+  // per-vertex mix for this frame (into this.blendMix), and the composite grid's alphas interpolated from it
+  Engine.prototype.blendMixes = function (linear) {
+    const A = this.blendA, C = this.blendC, M = this.blendMix || (this.blendMix = new Float32Array(NV));
+    for (let n = 0; n < NV; n++) { const m = A[n] * linear + C[n]; M[n] = m < 0 ? 0 : m > 1 ? 1 : m; }
+    const nc = FCGSX * FCGSY, CA = this.compMix || (this.compMix = new Float32Array(nc)), XY = this.compXY;
+    for (let k = 0; k < nc; k++) {
+      // a composite vertex at screen (x, y) shows the warp-grid vertex drawn there
+      const gx = Math.max(0, Math.min(GX - 0.0001, XY[k * 2] * GX)), gy = Math.max(0, Math.min(GY - 0.0001, XY[k * 2 + 1] * GY));
+      const x0 = Math.floor(gx), y0 = Math.floor(gy), dx = gx - x0, dy = gy - y0, i = y0 * (GX + 1) + x0;
+      CA[k] = M[i] * (1 - dx) * (1 - dy) + M[i + 1] * dx * (1 - dy) + M[i + GX + 1] * (1 - dx) * dy + M[i + GX + 2] * dx * dy;
+    }
+    return M;
+  };
   Engine.prototype.drawWarp = function (st, uv, alpha, blend) {
     const gl = this.gl, m = this.meshVAO;
     const UV = this.meshUV;
     for (let n = 0; n < NV; n++) { UV[n * 4] = uv[n * 2]; UV[n * 4 + 1] = uv[n * 2 + 1]; }
     gl.bindVertexArray(m.vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, m.uv); gl.bufferSubData(gl.ARRAY_BUFFER, 0, UV);
-    if (alpha !== this.warpAlpha) {
-      // the vertex colour is constant white; only its alpha changes, and only during blends
+    if (typeof alpha !== "number") {
+      // per-vertex alphas during a transition
+      const C = this.meshCol;
+      for (let n = 0; n < NV; n++) { C[n * 4] = 1; C[n * 4 + 1] = 1; C[n * 4 + 2] = 1; C[n * 4 + 3] = alpha[n]; }
+      gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferSubData(gl.ARRAY_BUFFER, 0, C);
+      this.warpAlpha = -1;
+    } else if (alpha !== this.warpAlpha) {
+      // otherwise the vertex colour is constant white with one alpha
       const C = this.meshCol;
       for (let n = 0; n < NV; n++) { C[n * 4] = 1; C[n * 4 + 1] = 1; C[n * 4 + 2] = 1; C[n * 4 + 3] = alpha; }
       gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferSubData(gl.ARRAY_BUFFER, 0, C);
@@ -3594,7 +3666,7 @@ void main(){
     for (let k = 0; k < n; k++) {
       const x = this.compXY[k * 2], y = this.compXY[k * 2 + 1];
       for (let c = 0; c < 3; c++) col[k * 4 + c] = shade[0][c] * x * y + shade[1][c] * (1 - x) * y + shade[2][c] * x * (1 - y) + shade[3][c] * (1 - x) * (1 - y);
-      col[k * 4 + 3] = alpha;
+      col[k * 4 + 3] = typeof alpha === "number" ? alpha : alpha[k];
     }
     gl.bindVertexArray(m.vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, m.col); gl.bufferSubData(gl.ARRAY_BUFFER, 0, col);
@@ -3659,9 +3731,11 @@ void main(){
     // warp
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb[1 - this.cur].fbo); gl.viewport(0, 0, this.W, this.H);
     if (old) {
-      for (let i = 0; i < this.uvA.length; i++) this.uvB[i] = this.uvA[i] * mix + this.uvB[i] * (1 - mix);
-      this.drawWarp(old, this.uvB, 1, false);
-      this.drawWarp(st, this.uvB, mix, true);
+      // CPlugin::ComputeGridAlphaValues: blend the motion per vertex, then draw old, then new with those alphas
+      const M = this.blendMixes(Math.min(1, linear)), A = this.uvA, B = this.uvB;
+      for (let n = 0; n < NV; n++) { const m = M[n]; B[n * 2] = A[n * 2] * m + B[n * 2] * (1 - m); B[n * 2 + 1] = A[n * 2 + 1] * m + B[n * 2 + 1] * (1 - m); }
+      this.drawWarp(old, B, 1, false);
+      this.drawWarp(st, B, M, true);
     } else this.drawWarp(st, this.uvA, 1, false);
 
     // blur passes (read the previous frame)
@@ -3680,7 +3754,7 @@ void main(){
 
     // composite to the screen
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, this.W, this.H);
-    if (old) { this.drawComp(old, 1, false); this.drawComp(st, mix, true); }
+    if (old) { this.drawComp(old, 1, false); this.drawComp(st, this.compMix, true); }
     else this.drawComp(st, 1, false);
     gl.disable(gl.BLEND);
     this.cur = 1 - this.cur;
