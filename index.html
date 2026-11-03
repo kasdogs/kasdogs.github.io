@@ -127,7 +127,10 @@ button.icon[aria-pressed="true"] .i-on{display:none}
 .chip button{border:0;border-radius:0;background:transparent;text-transform:none;letter-spacing:0;font-weight:400}
 .chip .go{padding:7px 4px 7px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:22em}
 .chip .x{padding:4px 9px;color:var(--dim);font-size:14px;line-height:1}
-.chip .x:hover{color:var(--ink)}
+.chip .x:hover{color:#ff786e}
+.chip.confirm{border-color:#ff786e;background:rgba(255,120,110,.16)}
+.chip.confirm .go,.chip.confirm .x{color:#ff9c94}
+.chip.confirm .x{font:600 13px/1 var(--mono)}
 .chip:hover{border-color:var(--accent)}
 .chip.on{border-color:var(--accent);background:rgba(134,200,255,.14)}
 .chip.on .go{color:#fff}
@@ -4940,7 +4943,8 @@ void main(){
     const sp = $("#streamPause"), stOn = audio.mode === "stream" && audio.stream;
     sp.disabled = !stOn; const live = !!(stOn && !audio.stream.paused);
     sp.classList.toggle("playing", live); sp.setAttribute("aria-label", live ? "Pause stream" : "Play stream (rejoins live)");
-    $("#addShortcut").disabled = !stOn;
+    // one shortcut per address: nothing to add when the playing stream already has one
+    $("#addShortcut").disabled = !stOn || !streamSrc || !!savedAs(streamSrc.url);
     if (!stOn) $("#shortcutNameRow").hidden = true;
     renderShortcuts();
   }
@@ -5100,8 +5104,11 @@ void main(){
 
   // stream shortcuts: named buttons for streams you've connected to, kept in this browser, sorted by name
   const byNameSort = (a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true});
-  shortcuts = (LS.get("streamShortcuts", []) || []).filter((x) => x && x.name && x.url).sort(byNameSort);
-  const saveShortcuts = () => { shortcuts.sort(byNameSort); LS.set("streamShortcuts", shortcuts); renderShortcuts(); };
+  shortcuts = (LS.get("streamShortcuts", []) || []).filter((x) => x && x.name && x.url).sort(byNameSort)
+    .filter((x, i, a) => a.findIndex((y) => y.url === x.url) === i); // one per address
+  const saveShortcuts = () => { shortcuts.sort(byNameSort); LS.set("streamShortcuts", shortcuts); syncAudioUI(); };
+  let pendingDel = null, pendingTimer = 0;
+  const savedAs = (url) => shortcuts.find((x) => x.url === url);
   function renderShortcuts() {
     const box = $("#shortcuts");
     const live = audio.mode === "stream" && audio.stream && streamSrc;
@@ -5111,8 +5118,19 @@ void main(){
       if (live && sc.url === streamSrc.url && (sc.proxy || "") === (streamSrc.proxy || "")) chip.classList.add("on");
       const go = document.createElement("button"); go.type = "button"; go.className = "go"; go.textContent = sc.name;
       go.addEventListener("click", () => { $("#streamUrl").value = sc.url; $("#proxyUrl").value = sc.proxy || ""; connectStream(); });
-      const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "\u00d7"; x.setAttribute("aria-label", "Remove shortcut " + sc.name);
-      x.addEventListener("click", () => { shortcuts = shortcuts.filter((s2) => s2 !== sc); saveShortcuts(); });
+      // × asks first: one press turns the shortcut red with "?" for 5 s; a second press removes it
+      const asking = pendingDel === sc;
+      if (asking) chip.classList.add("confirm");
+      const x = document.createElement("button"); x.type = "button"; x.className = "x";
+      x.textContent = asking ? "?" : "\u00d7";
+      x.setAttribute("aria-label", asking ? "Press again to remove " + sc.name : "Remove shortcut " + sc.name);
+      x.addEventListener("click", () => {
+        clearTimeout(pendingTimer);
+        if (pendingDel === sc) { pendingDel = null; shortcuts = shortcuts.filter((s2) => s2 !== sc); saveShortcuts(); return; }
+        pendingDel = sc; renderShortcuts();
+        const again = $("#shortcuts").querySelector(".confirm .x"); if (again) again.focus();
+        pendingTimer = setTimeout(() => { pendingDel = null; renderShortcuts(); }, 5000);
+      });
       chip.append(go, x); box.appendChild(chip);
     }
   }
@@ -5130,6 +5148,8 @@ void main(){
     $("#shortcutNameRow").hidden = true;
     if (!name || !streamSrc) return;
     // the same name again replaces that shortcut's stream
+    const dup = savedAs(streamSrc.url);
+    if (dup) { toast("This stream is already saved as \u201c" + dup.name + "\u201d.", "info", 3500); return; }
     shortcuts = shortcuts.filter((x) => x.name.toLowerCase() !== name.toLowerCase());
     shortcuts.push({name, url: streamSrc.url, proxy: streamSrc.proxy || ""});
     saveShortcuts();
