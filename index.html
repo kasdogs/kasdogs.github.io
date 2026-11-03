@@ -32,6 +32,8 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
+/* every overlay is drawn at 90% size; the canvas stays full-bleed */
+.hud,.bar,.drawer,.keysBtn,.keyspanel,.toast,.drop{zoom:.9}
 html,body{height:100%}
 body{margin:0}
 body{background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--mono);font-size:13px;
@@ -3941,7 +3943,7 @@ void main(){
       const i = this.data[r], it = lib[i];
       b.hidden = false; b.style.top = r * this.rowH + "px"; b.dataset.i = i;
       const tk = b.firstChild.firstChild;
-      if (tk.textContent !== it.name) { tickOff(b.firstChild); tk.textContent = it.name; b.title = it.name; if (b.matches(":hover")) tickOn(b.firstChild); }
+      if (tk.textContent !== it.name) { tickOff(b.firstChild); tk.textContent = it.name; if (b.matches(":hover")) tickOn(b.firstChild); }
       b.lastChild.textContent = it.builtin ? "starter" : it.ver;
       b.classList.toggle("cur", i === this.cur);
       b.setAttribute("aria-current", i === this.cur ? "true" : "false");
@@ -4016,7 +4018,7 @@ void main(){
       let v = it ? it.name : "?";
       if (it && k >= 3 && it.ver !== "MD2") v += " (classic " + (k === 3 ? "warp" : "comp") + ")";
       if (b.lastChild.firstChild.textContent !== v) {
-        b.lastChild.firstChild.textContent = v; b.title = v;
+        b.lastChild.firstChild.textContent = v;
         if (b.matches(":hover") || b === document.activeElement) tickStart(b);
       }
       b.classList.toggle("active", k === mash.active);
