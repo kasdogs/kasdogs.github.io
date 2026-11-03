@@ -293,14 +293,6 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
       <ul class="issues" id="issues"></ul>
     </div>
     <details>
-      <summary>Display</summary>
-      <div class="row">
-        <label class="note" for="quality">Quality</label>
-        <select id="quality"><option value="high">High</option><option value="low">Low</option></select>
-      </div>
-      <p class="note" id="qualityNote">Low renders at 60% resolution for slower devices. Frame rate is capped near 60.</p>
-    </details>
-    <details>
       <summary>Library storage</summary>
       <button type="button" class="switch" role="switch" id="keepLib" aria-checked="true"><span class="track"></span><span>Keep my library in this browser</span></button>
       <p class="note" id="keepNote">Presets and textures you add are saved here so they're back next time.</p>
@@ -4479,16 +4471,10 @@ void main(){
 
   /* ---------------- render loop ---------------- */
   let last = performance.now(), hudClock = 0;
-  // Quality: High renders at up to 1280 px on the long side; Low at 60% of that.
-  const quality = {mode: LS.get("quality", "high")};
-  if (!["high", "low"].includes(quality.mode)) quality.mode = "high";
-  const resScale = () => (quality.mode === "low" ? 0.6 : 1);
-  $("#quality").value = quality.mode;
-  $("#quality").addEventListener("change", (e) => { quality.mode = e.target.value; LS.set("quality", quality.mode); });
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let w = canvas.clientWidth * dpr, h = canvas.clientHeight * dpr;
-    const s = Math.min(1, 1280 / Math.max(w, h, 1)) * resScale();
+    const s = Math.min(1, 1280 / Math.max(w, h, 1));
     engine.resize(w * s, h * s);
   }
   // Frame pacing: on 120/144 Hz screens draw every 2nd refresh (an even cadence near 60 fps)
