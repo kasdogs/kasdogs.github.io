@@ -205,7 +205,9 @@ body.idle .bar,body.idle .hud{opacity:0;pointer-events:none}
 .bin.active{border-color:var(--accent);background:rgba(134,200,255,.1)}
 .bin.active .lab{color:var(--accent)}
 .kbd{font-size:11px;color:var(--dim);line-height:1.6}
-body.menukeys-off #paneMash .kbd,body.menukeys-off #panePresets .kbd{opacity:.4}
+/* key hints fade right down while the panel doesn't have the keys (the visualizer was clicked last) */
+#drawer .kbd{transition:opacity .2s}
+body.menukeys-off #drawer .kbd{opacity:.22}
 .kbd b{color:var(--ink);font-weight:500}
 
 .seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
@@ -435,6 +437,7 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
         <button type="button" class="icon" id="trkShuffle" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 4h3l6 8h3M2 12h3l2-2.7M9.5 6.7 11 4h3M12 2l2 2-2 2M12 10l2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
       <div class="queue" id="queue" aria-label="Play queue"></div>
+      <p class="kbd"><b>Enter</b> plays the selected track · <b>Alt + ↑ ↓</b> moves it · <b>Delete</b> removes it</p>
       <div class="row"><button type="button" id="loadAudio">Add audio files</button><button type="button" id="clearQueue" class="quiet" disabled>Clear queue</button></div>
       <p class="note">MP3, WAV, OGG, FLAC or M4A. Drop files anywhere on the page to queue them. Drag tracks by their handle to reorder.</p>
       <input type="file" id="fileAudio" accept="audio/*" multiple hidden>
