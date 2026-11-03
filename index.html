@@ -122,6 +122,7 @@ button.icon[aria-pressed="true"] .i-on{display:none}
 .qx:hover{color:var(--ink)}
 .volrow{display:flex;gap:8px;align-items:center}
 .volrow input[type=range]{flex:1;min-width:0}
+.gainval{color:var(--ink);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;margin-left:6px}
 .volrow input[type=range]:disabled{opacity:.35;filter:grayscale(1);cursor:not-allowed}
 .vu{display:grid;gap:5px;border:1px solid var(--line);border-radius:4px;padding:10px 12px 8px}
 .vurow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center}
@@ -420,7 +421,9 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
 
     <div id="srcMic" class="field" hidden>
       <label for="micSel">Input device</label>
-      <div class="pick pick3"><select id="micSel" aria-label="Input device"><option value="">System default input</option></select><button type="button" id="micGo">Listen</button><button type="button" class="icon" id="micMute" aria-label="Mute input" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="6" y="1.5" width="4" height="8" rx="2" fill="currentColor"/><path d="M3.8 7.5a4.2 4.2 0 0 0 8.4 0M8 11.8v2.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="i-off" d="M2.5 2.5l11 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+      <div class="pick"><select id="micSel" aria-label="Input device"><option value="">System default input</option></select><button type="button" id="micGo">Listen</button></div>
+      <label for="micGain">Gain <span class="gainval" id="micGainVal">+0.0 dB</span></label>
+      <div class="volrow"><button type="button" class="icon" id="micMute" aria-label="Mute input" aria-pressed="false" disabled><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="6" y="1.5" width="4" height="8" rx="2" fill="currentColor"/><path d="M3.8 7.5a4.2 4.2 0 0 0 8.4 0M8 11.8v2.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="i-off" d="M2.5 2.5l11 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><input type="range" id="micGain" min="-60" max="6" step="0.5" value="0" aria-label="Input gain"></div>
       <p class="note">Device names appear after you allow access the first time. Line-in and loopback devices work too. This input is only analyzed, never played back.</p>
     </div>
 
@@ -2148,6 +2151,7 @@ ${copyInit}  vec2 uv = _uv.xy;
 (function (root) {
   "use strict";
   const NWAVE = 576, NSPEC = 512;
+  const dbToGain = (db) => (db === -Infinity || db <= -120 ? 0 : Math.pow(10, db / 20));
 
   function AudioEngine() {
     this.ctx = null;
@@ -2168,6 +2172,7 @@ ${copyInit}  vec2 uv = _uv.xy;
     this.stream = null; // {el, node, url, hls}
     this.analysisBlocked = false;
     this.volume = 1; this.muted = false;
+    this.micGainDb = 0; // input sensitivity, -Infinity..+6 dB
   }
   AudioEngine.prototype.on = function (fn) { this.listeners.add(fn); };
   AudioEngine.prototype.emit = function () { for (const fn of this.listeners) try { fn(this); } catch (e) { console.error(e); } };
@@ -2236,11 +2241,33 @@ ${copyInit}  vec2 uv = _uv.xy;
   AudioEngine.prototype.enqueue = function (files) {
     const added = [];
     for (const f of files) {
-      const t = {id: this.nextId++, file: f, name: f.name.replace(/\.[a-z0-9]+$/i, ""), url: URL.createObjectURL(f), duration: 0};
+      const t = {id: this.nextId++, file: f, name: f.name, url: URL.createObjectURL(f), duration: 0};
       this.queue.push(t); added.push(t);
     }
     this.emit();
+    this.probeQueue();
     return added;
+  };
+  // Read each queued track's tags and length in the background, one at a time, without playing it.
+  AudioEngine.prototype.probeQueue = async function () {
+    if (this.probing) return;
+    this.probing = true;
+    try {
+      for (;;) {
+        const t = this.queue.find((x) => !x.probed);
+        if (!t) break;
+        t.probed = true;
+        try {
+          const tags = await readTags(t.file);
+          const artist = tags.artist && tags.artist.trim(), title = tags.title && tags.title.trim();
+          if (artist && title) t.name = artist + " - " + title;
+          else if (title) t.name = title;
+        } catch (e) { /* keep the filename */ }
+        if (!t.duration) t.duration = await probeDuration(t.url);
+        if (this.cur >= 0 && this.queue[this.cur] === t && this.file) { this.file.name = t.name; if (this.mode === "file") this.status = t.name; }
+        this.emit();
+      }
+    } finally { this.probing = false; }
   };
   AudioEngine.prototype.playTrack = function (i) {
     const t = this.queue[i]; if (!t) return;
@@ -2349,7 +2376,12 @@ ${copyInit}  vec2 uv = _uv.xy;
     }
     this.stopAll();
     const node = ctx.createMediaStreamSource(stream);
-    node.connect(this.input); // never to the speakers: that would feed back
+    // input -> gain -> analysis (VU meter + visuals); never to the speakers, which would feed back
+    if (!this.micGain) this.micGain = ctx.createGain();
+    this.micGain.gain.value = dbToGain(this.micGainDb);
+    try { this.micGain.disconnect(); } catch (e) {}
+    this.micGain.connect(this.input);
+    node.connect(this.micGain);
     const track = stream.getAudioTracks()[0];
     this.mode = "mic";
     this.mic = {stream, node, deviceId: (track && track.getSettings && track.getSettings().deviceId) || deviceId || "", muted: false};
@@ -2358,6 +2390,10 @@ ${copyInit}  vec2 uv = _uv.xy;
     if (track) track.addEventListener("ended", () => { if (this.mic && this.mic.stream === stream) { this.useDemo(); this.setStatus("The input device was disconnected."); } });
   };
 
+  AudioEngine.prototype.setMicGain = function (db) {
+    this.micGainDb = db;
+    if (this.micGain) this.micGain.gain.setTargetAtTime(dbToGain(db), this.ctx.currentTime, 0.02);
+  };
   // mute the input: the track keeps running (no new permission prompt) but delivers silence
   AudioEngine.prototype.setMicMuted = function (m) {
     if (!this.mic) return;
@@ -2559,6 +2595,135 @@ ${copyInit}  vec2 uv = _uv.xy;
       }
     }
   };
+
+  /* ---- track length without playing: a throwaway element that only loads metadata ---- */
+  function probeDuration(url) {
+    return new Promise((res) => {
+      const el = new Audio(); el.preload = "metadata"; el.muted = true;
+      const done = (d) => { clearTimeout(timer); el.onloadedmetadata = el.onerror = null; el.removeAttribute("src"); try { el.load(); } catch (e) {} res(d); };
+      const timer = setTimeout(() => done(0), 8000);
+      el.onloadedmetadata = () => done(isFinite(el.duration) ? el.duration : 0);
+      el.onerror = () => done(0);
+      el.src = url;
+    });
+  }
+
+  /* ---- tags: ID3v2 / ID3v1 (MP3), Vorbis comments (FLAC, OGG, Opus), MP4 ilst (M4A/AAC), RIFF INFO (WAV) ---- */
+  const bytes = async (file, start, end) => new Uint8Array(await file.slice(start, end).arrayBuffer());
+  function decodeText(b, enc) {
+    try {
+      if (enc === 1 || enc === 2) {
+        let le = enc === 1, o = 0;
+        if (enc === 1 && b.length >= 2) { if (b[0] === 0xFE && b[1] === 0xFF) { le = false; o = 2; } else if (b[0] === 0xFF && b[1] === 0xFE) { le = true; o = 2; } }
+        return new TextDecoder(le ? "utf-16le" : "utf-16be").decode(b.subarray(o)).replace(/\0[\s\S]*$/, "");
+      }
+      return new TextDecoder(enc === 3 ? "utf-8" : "latin1").decode(b).replace(/\0[\s\S]*$/, "");
+    } catch (e) { return ""; }
+  }
+  const u32be = (b, o) => ((b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]) >>> 0;
+  const u32le = (b, o) => (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
+  const syncsafe = (b, o) => (b[o] << 21) | (b[o + 1] << 14) | (b[o + 2] << 7) | b[o + 3];
+  const str4 = (b, o) => String.fromCharCode(b[o], b[o + 1], b[o + 2], b[o + 3]);
+  function vorbisComments(b, o) {
+    const out = {};
+    const vlen = u32le(b, o); o += 4 + vlen;
+    const n = u32le(b, o); o += 4;
+    for (let i = 0; i < n && o + 4 <= b.length; i++) {
+      const len = u32le(b, o); o += 4;
+      const kv = new TextDecoder("utf-8").decode(b.subarray(o, Math.min(b.length, o + len))); o += len;
+      const eq = kv.indexOf("="); if (eq < 0) continue;
+      const k = kv.slice(0, eq).toLowerCase(), v = kv.slice(eq + 1);
+      if ((k === "artist" || k === "title") && !out[k]) out[k] = v;
+    }
+    return out;
+  }
+  async function readTags(file) {
+    const head = await bytes(file, 0, 16);
+    // ID3v2 (MP3, sometimes AAC/WAV)
+    if (head[0] === 0x49 && head[1] === 0x44 && head[2] === 0x33) {
+      const ver = head[3], size = syncsafe(head, 6);
+      const b = await bytes(file, 10, 10 + Math.min(size, 4 << 20));
+      const out = {};
+      let o = (head[5] & 0x40) && ver >= 3 ? (ver === 4 ? syncsafe(b, 0) : u32be(b, 0) + 4) : 0; // skip an extended header
+      while (o + (ver === 2 ? 6 : 10) <= b.length) {
+        let id, len, hdr;
+        if (ver === 2) { id = String.fromCharCode(b[o], b[o + 1], b[o + 2]); len = (b[o + 3] << 16) | (b[o + 4] << 8) | b[o + 5]; hdr = 6; }
+        else { id = str4(b, o); len = ver === 4 ? syncsafe(b, o + 4) : u32be(b, o + 4); hdr = 10; }
+        if (!/^[A-Z0-9]{3,4}$/.test(id) || len <= 0) break;
+        const body = b.subarray(o + hdr, o + hdr + len);
+        if ((id === "TIT2" || id === "TT2") && !out.title) out.title = decodeText(body.subarray(1), body[0]);
+        if ((id === "TPE1" || id === "TP1") && !out.artist) out.artist = decodeText(body.subarray(1), body[0]);
+        o += hdr + len;
+      }
+      if (out.title || out.artist) return out;
+    }
+    // FLAC
+    if (str4(head, 0) === "fLaC") {
+      let o = 4;
+      for (let k = 0; k < 64; k++) {
+        const h = await bytes(file, o, o + 4); if (h.length < 4) break;
+        const last = h[0] & 0x80, type = h[0] & 0x7f, len = (h[1] << 16) | (h[2] << 8) | h[3];
+        if (type === 4) return vorbisComments(await bytes(file, o + 4, o + 4 + len), 0);
+        o += 4 + len; if (last) break;
+      }
+      return {};
+    }
+    // OGG (Vorbis, Opus): the comment header sits in the first pages
+    if (str4(head, 0) === "OggS") {
+      const b = await bytes(file, 0, 256 << 10);
+      const find = (sig) => { outer: for (let i = 0; i + sig.length <= b.length; i++) { for (let j = 0; j < sig.length; j++) if (b[i + j] !== sig[j]) continue outer; return i + sig.length; } return -1; };
+      let o = find([3, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73]); // \x03vorbis
+      if (o < 0) o = find([0x4f, 0x70, 0x75, 0x73, 0x54, 0x61, 0x67, 0x73]); // OpusTags
+      return o >= 0 ? vorbisComments(b, o) : {};
+    }
+    // MP4 / M4A: moov > udta > meta > ilst > ©ART / ©nam
+    if (str4(head, 4) === "ftyp") {
+      const out = {};
+      const walk = async (start, end, path) => {
+        let o = start;
+        while (o + 8 <= end) {
+          const h = await bytes(file, o, o + 16);
+          let size = u32be(h, 0); const type = str4(h, 4); let hdr = 8;
+          if (size === 1) { size = u32be(h, 8) * 4294967296 + u32be(h, 12); hdr = 16; } else if (size === 0) size = end - o;
+          if (size < 8) break;
+          if (type === "moov" || type === "udta" || type === "ilst") await walk(o + hdr, o + size, path + "/" + type);
+          else if (type === "meta") await walk(o + hdr + 4, o + size, path + "/meta");
+          else if (path.endsWith("/ilst") && (type === "©ART" || type === "©nam")) {
+            const d = await bytes(file, o + hdr, o + Math.min(size, 4096));
+            if (str4(d, 4) === "data") out[type === "©ART" ? "artist" : "title"] = new TextDecoder("utf-8").decode(d.subarray(16));
+          }
+          o += size;
+        }
+      };
+      await walk(0, file.size, "");
+      return out;
+    }
+    // WAV: LIST/INFO with IART, INAM
+    if (str4(head, 0) === "RIFF" && str4(head, 8) === "WAVE") {
+      let o = 12; const out = {};
+      for (let k = 0; k < 64 && o + 8 <= file.size; k++) {
+        const h = await bytes(file, o, o + 12); const id = str4(h, 0), len = u32le(h, 4);
+        if (id === "LIST" && str4(h, 8) === "INFO") {
+          const b = await bytes(file, o + 12, o + 8 + len);
+          for (let p = 0; p + 8 <= b.length;) {
+            const sid = str4(b, p), sl = u32le(b, p + 4);
+            const v = decodeText(b.subarray(p + 8, p + 8 + sl), 0);
+            if (sid === "INAM") out.title = v; if (sid === "IART") out.artist = v;
+            p += 8 + sl + (sl & 1);
+          }
+          return out;
+        }
+        o += 8 + len + (len & 1);
+      }
+    }
+    // ID3v1 at the end
+    if (file.size > 128) {
+      const t = await bytes(file, file.size - 128, file.size);
+      if (t[0] === 0x54 && t[1] === 0x41 && t[2] === 0x47) return {title: decodeText(t.subarray(3, 33), 0).trim(), artist: decodeText(t.subarray(33, 63), 0).trim()};
+    }
+    return {};
+  }
+  AudioEngine.readTags = readTags;
 
   root.AudioEngine = AudioEngine;
   if (typeof module !== "undefined" && module.exports) module.exports = AudioEngine;
@@ -4708,6 +4873,7 @@ void main(){
     const mm = $("#micMute"), micOn = audio.mode === "mic" && audio.mic;
     mm.disabled = !micOn; const mu = !!(micOn && audio.mic.muted);
     mm.setAttribute("aria-pressed", String(mu)); mm.setAttribute("aria-label", mu ? "Unmute input" : "Mute input");
+    $("#micGain").disabled = mu;
     const sp = $("#streamPause"), stOn = audio.mode === "stream" && audio.stream;
     sp.disabled = !stOn; const live = !!(stOn && !audio.stream.paused);
     sp.classList.toggle("playing", live); sp.setAttribute("aria-label", live ? "Pause stream" : "Play stream (rejoins live)");
@@ -4813,6 +4979,17 @@ void main(){
   audio.shuffle = !!LS.get("shuffleTracks", false);
   function togglePlay() { if (audio.queue.length) { if (audio.mode !== "file") showSrc("file"); audio.togglePlay(); } }
   $("#micMute").addEventListener("click", () => { if (audio.mic) audio.setMicMuted(!audio.mic.muted); });
+  // input gain (sensitivity): -60 on the slider means silence (-inf dB), up to +6 dB
+  function setMicGain(v, save) {
+    const db = v <= -60 ? -Infinity : v;
+    audio.setMicGain(db);
+    $("#micGain").value = String(Math.max(-60, Math.min(6, v)));
+    $("#micGainVal").textContent = db === -Infinity ? "\u2212\u221e dB" : (db > 0 ? "+" : db < 0 ? "\u2212" : "+") + Math.abs(db).toFixed(1) + " dB";
+    if (save) LS.set("micGain", v);
+  }
+  $("#micGain").addEventListener("input", () => setMicGain(+$("#micGain").value, true));
+  $("#micGain").addEventListener("dblclick", () => setMicGain(0, true)); // double-click resets to 0 dB
+  setMicGain(+LS.get("micGain", 0) || 0, false);
   $("#streamPause").addEventListener("click", () => audio.toggleStream());
 
   async function refreshDevices() {
