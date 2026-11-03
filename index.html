@@ -121,6 +121,16 @@ button.icon[aria-pressed="true"] .i-on{display:none}
 .qx{border:0;background:transparent;padding:2px 6px;color:var(--dim);text-transform:none;font-size:14px;line-height:1}
 .qx:hover{color:var(--ink)}
 .volrow{display:flex;gap:8px;align-items:center}
+.shortcuts{display:flex;flex-wrap:wrap;gap:6px}
+.shortcuts:empty{display:none}
+.chip{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:3px;background:var(--glass);max-width:100%;min-width:0}
+.chip button{border:0;border-radius:0;background:transparent;text-transform:none;letter-spacing:0;font-weight:400}
+.chip .go{padding:7px 4px 7px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:22em}
+.chip .x{padding:4px 9px;color:var(--dim);font-size:14px;line-height:1}
+.chip .x:hover{color:var(--ink)}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent);background:rgba(134,200,255,.14)}
+.chip.on .go{color:#fff}
 .volrow input[type=range]{flex:1;min-width:0}
 .gainval{color:var(--ink);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;margin-left:6px}
 .volrow input[type=range]:disabled{opacity:.35;filter:grayscale(1);cursor:not-allowed}
@@ -444,6 +454,12 @@ body.idle .keysBtn{opacity:0;pointer-events:none}
     <div class="field" id="volField">
       <label for="vol">Volume</label>
       <div class="volrow"><button type="button" class="icon" id="volMute" aria-label="Mute" aria-pressed="false"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/><path class="i-on" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="i-off" d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><input type="range" id="vol" min="0" max="1" step="0.01" value="1"></div>
+    </div>
+
+    <div class="field" id="shortcutField" hidden>
+      <div class="row"><button type="button" id="addShortcut" disabled>+ Shortcut</button></div>
+      <div class="row" id="shortcutNameRow" hidden><input type="text" id="shortcutName" class="grow" maxlength="60" placeholder="Name this stream, then press Enter" aria-label="Shortcut name" autocomplete="off" spellcheck="false"></div>
+      <div class="shortcuts" id="shortcuts" aria-label="Stream shortcuts"></div>
     </div>
   </section>
 
@@ -4891,11 +4907,13 @@ void main(){
   /* ---------------- audio UI ---------------- */
   const srcPanes = {demo: "#srcDemo", file: "#srcFile", mic: "#srcMic", stream: "#srcStream"};
   let shownSrc = "file";
+  let shortcuts = []; // stream shortcuts (loaded further down)
   function showSrc(k) {
     shownSrc = k;
     for (const b of document.querySelectorAll(".seg [data-src]")) b.setAttribute("aria-checked", String(b.dataset.src === k));
     for (const s in srcPanes) $(srcPanes[s]).hidden = s !== k;
     $("#volField").hidden = k === "mic" || k === "demo";
+    $("#shortcutField").hidden = k !== "stream";
     if (k === "demo") audio.useDemo();
     if (k === "mic") refreshDevices();
   }
@@ -4922,6 +4940,9 @@ void main(){
     const sp = $("#streamPause"), stOn = audio.mode === "stream" && audio.stream;
     sp.disabled = !stOn; const live = !!(stOn && !audio.stream.paused);
     sp.classList.toggle("playing", live); sp.setAttribute("aria-label", live ? "Pause stream" : "Play stream (rejoins live)");
+    $("#addShortcut").disabled = !stOn;
+    if (!stOn) $("#shortcutNameRow").hidden = true;
+    renderShortcuts();
   }
   // play queue: click a row to play it, drag its handle to reorder, × removes it
   let qDrag = null;
@@ -5064,10 +5085,11 @@ void main(){
 
   $("#streamUrl").value = LS.get("stream", "");
   $("#proxyUrl").value = LS.get("proxy", "");
+  let streamSrc = null; // {url, proxy} as typed, for the connected stream (what a shortcut saves)
   async function connectStream() {
     const url = $("#streamUrl").value.trim(), proxy = $("#proxyUrl").value.trim();
     LS.set("stream", url); LS.set("proxy", proxy);
-    try { await audio.useStream(url, proxy); if (audio.analysisBlocked) toast(audio.status, "warn", 9000); }
+    try { await audio.useStream(url, proxy); streamSrc = {url, proxy}; syncAudioUI(); if (audio.analysisBlocked) toast(audio.status, "warn", 9000); }
     catch (e) {
       const msg = (e && e.message) || "The stream couldn't be played.";
       audio.setStatus(msg + (window.top !== window ? " Embedded viewers block outside media; download the page and open it directly to use radio." : ""));
@@ -5075,6 +5097,44 @@ void main(){
     }
   }
   $("#streamGo").addEventListener("click", connectStream);
+
+  // stream shortcuts: named buttons for streams you've connected to, kept in this browser, sorted by name
+  const byNameSort = (a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true});
+  shortcuts = (LS.get("streamShortcuts", []) || []).filter((x) => x && x.name && x.url).sort(byNameSort);
+  const saveShortcuts = () => { shortcuts.sort(byNameSort); LS.set("streamShortcuts", shortcuts); renderShortcuts(); };
+  function renderShortcuts() {
+    const box = $("#shortcuts");
+    const live = audio.mode === "stream" && audio.stream && streamSrc;
+    box.textContent = "";
+    for (const sc of shortcuts) {
+      const chip = document.createElement("span"); chip.className = "chip";
+      if (live && sc.url === streamSrc.url && (sc.proxy || "") === (streamSrc.proxy || "")) chip.classList.add("on");
+      const go = document.createElement("button"); go.type = "button"; go.className = "go"; go.textContent = sc.name;
+      go.addEventListener("click", () => { $("#streamUrl").value = sc.url; $("#proxyUrl").value = sc.proxy || ""; connectStream(); });
+      const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "\u00d7"; x.setAttribute("aria-label", "Remove shortcut " + sc.name);
+      x.addEventListener("click", () => { shortcuts = shortcuts.filter((s2) => s2 !== sc); saveShortcuts(); });
+      chip.append(go, x); box.appendChild(chip);
+    }
+  }
+  $("#addShortcut").addEventListener("click", () => {
+    if (!streamSrc) return;
+    const row = $("#shortcutNameRow"), inp = $("#shortcutName");
+    row.hidden = !row.hidden;
+    if (!row.hidden) { inp.value = ""; inp.focus(); }
+  });
+  $("#shortcutName").addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); $("#shortcutNameRow").hidden = true; return; }
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const name = $("#shortcutName").value.trim();
+    $("#shortcutNameRow").hidden = true;
+    if (!name || !streamSrc) return;
+    // the same name again replaces that shortcut's stream
+    shortcuts = shortcuts.filter((x) => x.name.toLowerCase() !== name.toLowerCase());
+    shortcuts.push({name, url: streamSrc.url, proxy: streamSrc.proxy || ""});
+    saveShortcuts();
+  });
+  renderShortcuts();
   $("#streamUrl").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); connectStream(); } });
   $("#vol").value = LS.get("vol", 1);
   audio.setVolume(+$("#vol").value);
