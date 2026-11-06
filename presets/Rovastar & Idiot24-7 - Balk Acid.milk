@@ -1,5 +1,5 @@
 [preset00]
-fRating=0.000000
+fRating=2.000000
 fGammaAdj=1
 fDecay=1
 fVideoEchoZoom=0.999514
@@ -66,7 +66,7 @@ per_frame_2=rot=rot+0.10*sin(time);
 per_frame_3=mv_r=0.5 +0.5*sin(time*1.23);
 per_frame_4=mv_b=0.5 + 0.5*sin(time*1.26);
 per_frame_5=mv_g=0.5+ 0.5*sin(time*1.19);
-per_frame_6=wave_g=wave_g+.20*sin(time*.13);
+per_frame_6=wave_g=wave_g*+.20*sin(time*.13);
 per_frame_7=wave_r=wave_r+.13*sin(time);
 per_frame_8=wave_b=wave_b*sin(time);
 per_frame_9=wave_x=wave_x-.5*sin(time*.13);
