@@ -3,7 +3,7 @@ PSVERSION=2
 PSVERSION_WARP=2
 PSVERSION_COMP=2
 [preset00]
-fRating=0.000000
+fRating=3.000000
 fGammaAdj=1.000
 fDecay=1.000
 fVideoEchoZoom=1.000
@@ -143,8 +143,8 @@ wave_0_per_point25=x1 = (c1*c2*xx + c1*s2*yy - s1*zz);
 wave_0_per_point26=y1 = ((s3*s1*c2 - c3*s2)*xx + (s3*s1*s2+c3*c2)*yy + s3*c1*zz);
 wave_0_per_point27=
 wave_0_per_point28=zoom = .5*(1/(z+0.5));
-wave_0_per_point29=x = 0.5 + zoom*x1 + sin(time*0.1)*0;;
-wave_0_per_point30=y = 0.5 + zoom*y1 + cos(time*0.16801)*0;
+wave_0_per_point29=x = 0.5 + zoom*x1 + sin(time*0.1)*0.;;
+wave_0_per_point30=y = 0.5 + zoom*y1 + cos(time*0.16801)*0.;
 wave_0_per_point31=
 wave_0_per_point32=pi3 = 3.1415*2*0.3333;
 wave_0_per_point33=t = z*2+t2*1;
@@ -458,7 +458,7 @@ warp_12=`
 warp_13=`    float2 v = 0.01;
 warp_14=`    ret.x = tex2D( sampler_fw_main, my_uv).x;
 warp_15=`
-warp_16=`
+warp_16=`    
 warp_17=`    ret.x += (ret.x - GetBlur3(uv).x)*.1;
 warp_18=`    ret.x += 0.004;
 warp_19=`
@@ -471,7 +471,7 @@ warp_25=`
 warp_26=`
 warp_27=`    v = 0.01;
 warp_28=`    ret.z = tex2D( sampler_fw_main, my_uv).z;
-warp_29=`
+warp_29=`    
 warp_30=`    ret.z += (ret.z - GetBlur1(uv).z)*length(my_uv-uv)*180/length(scale);
 warp_31=`    ret.z *= 0.85;
 warp_32=`    ret.z += 0.008;
@@ -492,7 +492,7 @@ warp_46=`
 warp_47=`    v = 0.01;
 warp_48=`    ret.y =tex2D( sampler_fw_main, my_uv).y;
 warp_49=`
-warp_50=`
+warp_50=`    
 warp_51=`    ret.y += (ret.y - GetBlur3(my_uv).y)*0.1 + 0.03;
 warp_52=`}
 comp_1=`shader_body
