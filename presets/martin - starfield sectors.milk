@@ -3,7 +3,7 @@ PSVERSION=2
 PSVERSION_WARP=2
 PSVERSION_COMP=2
 [preset00]
-fRating=0.000000
+fRating=4.000000
 fGammaAdj=1.980001
 fDecay=0.500000
 fVideoEchoZoom=0.999998
@@ -95,7 +95,7 @@ wave_0_init7=t7 = 1 + (rand(101)*.01 - rand(101)*.01)*.3;
 wave_0_init8=t8 = 1 + (rand(101)*.01 - rand(101)*.01)*.3;
 wave_0_init9=
 wave_0_per_frame1=t1 = sin(t/7);
-wave_0_per_point1=
+wave_0_per_point1=  
 wave_0_per_point2=t_abs = sample ;
 wave_0_per_point3=
 wave_0_per_point4=ox = sin (t_abs*68);
@@ -126,7 +126,7 @@ wave_0_per_point28=
 wave_0_per_point29=ox = mx;
 wave_0_per_point30=oy = my;
 wave_0_per_point31=mx = ox*cos(yang) + oz*sin(yang);
-wave_0_per_point32=mz = -ox*sin(yang) + oz*cos(yang);
+wave_0_per_point32=mz = - ox*sin(yang) + oz*cos(yang);
 wave_0_per_point33=ox = mx;
 wave_0_per_point34=oz = mz;
 wave_0_per_point35=my = oy*cos(xang) - oz*sin(xang);
@@ -262,7 +262,7 @@ shape_0_per_frame3=
 shape_0_per_frame4=x = .5+sin(trel*2);
 shape_0_per_frame5=y = .5+cos(trel*1.3 +q28/3);
 shape_0_per_frame6=
-shape_0_per_frame7=a = q26/4+.2;
+shape_0_per_frame7=a = q26/4+.2; 
 shape_0_per_frame8=//a = 1;
 shapecode_1_enabled=1
 shapecode_1_sides=4
@@ -352,7 +352,7 @@ shapecode_3_border_b=0.500000
 shapecode_3_border_a=0.299900
 per_frame_1=dec_med = pow (0.9, 30/fps);
 per_frame_2=dec_slow = pow (0.99, 30/fps);
-per_frame_3=beat = max (max (bass, mid), treb);
+per_frame_3=beat = max (max (bass, mid), treb); 
 per_frame_4=avg = avg*dec_slow + beat*(1-dec_slow);
 per_frame_5=is_beat = above(beat, .5+avg+peak) * above (time, t0+.2);
 per_frame_6=t0 = is_beat*time + (1-is_beat)*t0;
@@ -382,7 +382,7 @@ per_frame_29=q2 = sin(rott);
 per_frame_30=q3 = -q2;
 per_frame_31=q4 = q1;
 per_frame_32=
-per_frame_33=movez = movez + .005*(1.5+q1)*30/fps;
+per_frame_33=movez = movez + +.005*(1.5+q1)*30/fps;
 per_frame_34=q30 = movez;
 per_frame_35=
 per_frame_36=

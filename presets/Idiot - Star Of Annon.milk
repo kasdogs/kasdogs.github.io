@@ -1,5 +1,5 @@
 [preset00]
-fRating=5.000000
+fRating=3.000000
 fGammaAdj=1.000000
 fDecay=0.999000
 fVideoEchoZoom=1.006596
@@ -78,7 +78,7 @@ per_frame_14=q5=bass_c;
 per_frame_15=q6=treb_c;
 per_frame_16=q7=mid_c;
 per_frame_17=q8=vol_c;
-per_frame_18=wave_mystery=bass_Att-1;
+per_frame_18=wave_mysyery=bass_Att-1;
 per_frame_19=wave_R=wave_r+.2*sin(time*.43);
 per_frame_20=wave_B=wave_B-.2*sin(time*.54);
 per_frame_21=wave_g=wave_g-.4*sin(time*.34);
