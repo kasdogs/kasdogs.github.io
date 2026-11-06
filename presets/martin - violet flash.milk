@@ -3,7 +3,7 @@ PSVERSION=2
 PSVERSION_WARP=2
 PSVERSION_COMP=2
 [preset00]
-fRating=0.000000
+fRating=3.000000
 fGammaAdj=1.980001
 fDecay=0.500000
 fVideoEchoZoom=0.999998
@@ -199,7 +199,7 @@ wave_3_per_point40=my = ox*sin(zang) + oy*cos(zang);
 wave_3_per_point41=ox = mx;
 wave_3_per_point42=oy = my;
 wave_3_per_point43=mx = ox*cos(yang) + oz*sin(yang);
-wave_3_per_point44=mz = -ox*sin(yang) + oz*cos(yang);
+wave_3_per_point44=mz = - ox*sin(yang) + oz*cos(yang);
 wave_3_per_point45=ox = mx;
 wave_3_per_point46=oz = mz;
 wave_3_per_point47=my = oy*cos(xang) - oz*sin(xang);
@@ -337,7 +337,7 @@ per_frame_init_1=index4 = rand(2);
 per_frame_init_2=index3 = rand(4);
 per_frame_1=dec_med = pow (0.9, 30/fps);
 per_frame_2=dec_slow = pow (0.99, 30/fps);
-per_frame_3=beat = max (max (bass, mid), treb);
+per_frame_3=beat = max (max (bass, mid), treb); 
 per_frame_4=avg = avg*dec_slow + beat*(1-dec_slow);
 per_frame_5=is_beat = above(beat, .5+avg+peak) * above (time, t0+.2);
 per_frame_6=t0 = is_beat*time + (1-is_beat)*t0;
@@ -418,7 +418,7 @@ warp_24=`uv1 = uv1*0+.3*cos(uv1*16+time/8);
 warp_25=`float dots = (.004/length(uv1))*q19 ;
 warp_26=`
 warp_27=`
-warp_28=`float3 crisp = tex2D(sampler_main,uv)
+warp_28=`float3 crisp = tex2D(sampler_main,uv) 
 warp_29=`       + dots * float3 (.5,0,1);
 warp_30=`
 warp_31=`//crisp = lerp(crisp,crisp.brg,saturate(.2*lum(crisp)));
@@ -431,7 +431,7 @@ comp_4=`{
 comp_5=`float2 uv2;
 comp_6=`float ang2, c, s;
 comp_7=`uv -= 0.5;
-comp_8=`uv *= aspect.xy;
+comp_8=`uv *= aspect.xy;    
 comp_9=`
 comp_10=`float2 tmp = uv;
 comp_11=`float dist = 1;
@@ -440,12 +440,12 @@ comp_13=`ret1 = 0;
 comp_14=`int anz = 4;
 comp_15=`float n = 1;
 comp_16=`while (n <= anz) {
-comp_17=`    c = n%2-.5;
-comp_18=`    s = (n+1)%2-.5;
+comp_17=`    c = n%2-.5; 
+comp_18=`    s = (n+1)%2-.5; 
 comp_19=`    uv2.x =  uv.x*c - uv.y*s;
 comp_20=`    uv2.y =  uv.x*s + uv.y*c;
 comp_21=`    uv2 *= aspect.yx;
-comp_22=`    dist = 1-frac(.25*n+q31);
+comp_22=`    dist = 1-frac(.25*n+q31); 
 comp_23=`    inten =  2*sqrt(dist)*(1-dist*dist);
 comp_24=`
 comp_25=`    neu = tex2D(sampler_main, 2*uv2*dist + q32);
