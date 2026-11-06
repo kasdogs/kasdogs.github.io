@@ -1,5 +1,5 @@
 [preset00]
-fRating=0.000000
+fRating=1.000000
 fGammaAdj=1.000000
 fDecay=0.925000
 fVideoEchoZoom=1.006500
@@ -189,6 +189,7 @@ shapecode_2_border_a=0.100000
 shape_2_per_frame1=x = sin(time) * .4 + .5;
 shape_2_per_frame2=
 shape_2_per_frame3=
+shape_2_per_frame4=pow( (bass*.15),2);
 shapecode_3_enabled=1
 shapecode_3_sides=100
 shapecode_3_additive=0
