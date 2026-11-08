@@ -3,7 +3,7 @@ PSVERSION=3
 PSVERSION_WARP=3
 PSVERSION_COMP=3
 [preset00]
-fRating=3.000000
+fRating=5.000000
 fGammaAdj=1.980001
 fDecay=0.500000
 fVideoEchoZoom=0.999998
@@ -131,7 +131,7 @@ wave_0_per_point30=
 wave_0_per_point31=ox = mx;
 wave_0_per_point32=oy = my;
 wave_0_per_point33=mx = ox*cos(yang) + oz*sin(yang);
-wave_0_per_point34=mz = - ox*sin(yang) + oz*cos(yang);
+wave_0_per_point34=mz = -ox*sin(yang) + oz*cos(yang);
 wave_0_per_point35=ox = mx;
 wave_0_per_point36=oz =  mz;
 wave_0_per_point37=my = oy*cos(xang) - oz*sin(xang);
@@ -189,7 +189,7 @@ wave_1_per_point26=
 wave_1_per_point27=ox = mx;
 wave_1_per_point28=oy = my;
 wave_1_per_point29=mx = ox*cos(yang) + oz*sin(yang);
-wave_1_per_point30=mz = - ox*sin(yang) + oz*cos(yang);
+wave_1_per_point30=mz = -ox*sin(yang) + oz*cos(yang);
 wave_1_per_point31=ox = mx;
 wave_1_per_point32=oz = mz;
 wave_1_per_point33=my = oy*cos(xang) - oz*sin(xang);
@@ -285,7 +285,7 @@ shapecode_1_border_r=0.500000
 shapecode_1_border_g=0.500000
 shapecode_1_border_b=0.500000
 shapecode_1_border_a=0.000000
-shape_1_per_frame1= 
+shape_1_per_frame1=
 shape_1_per_frame2=trel = time/2+q20;
 shape_1_per_frame3=
 shape_1_per_frame4=x = .5+sin(trel);
@@ -342,7 +342,7 @@ shapecode_3_border_a=0.000000
 per_frame_init_1=index4 = rand(12); p1 = 0;
 per_frame_1=dec_med = pow (0.9, 30/fps);
 per_frame_2=dec_slow = pow (0.99, 30/fps);
-per_frame_3=beat = max (max (bass, mid), treb); 
+per_frame_3=beat = max (max (bass, mid), treb);
 per_frame_4=avg = avg*dec_slow + beat*(1-dec_slow);
 per_frame_5=is_beat = above(beat, .5+avg+peak) * above (time, t0+.2);
 per_frame_6=t0 = is_beat*time + (1-is_beat)*t0;
@@ -391,7 +391,7 @@ warp_2=`float corr = texsize.xy*texsize_noise_lq.zw;
 warp_3=`float2 arg;
 warp_4=`
 warp_5=`int k2 = int(q29); //index4
-warp_6=`int k1 = k2%4; 
+warp_6=`int k1 = k2%4;
 warp_7=`float clp = 8;
 warp_8=`
 warp_9=`float3 noiseVal =.03*(tex2D(sampler_noise_lq, uv*.3+.01*rand_frame));
@@ -403,7 +403,7 @@ warp_14=`
 warp_15=`//zz = zz * cos(1/rad*8);
 warp_16=`/// {zz = 5*(zz.xy+zz.yx);} //evtl,
 warp_17=`
-warp_18=`if (k1==0) {arg = clamp(tan(zz),-clp,clp);} 
+warp_18=`if (k1==0) {arg = clamp(tan(zz),-clp,clp);}
 warp_19=`else if (k1==1) {arg = clamp(tan(zz) / cos(zz.yx),-clp,clp);}
 warp_20=`else if (k1==2) {arg = clamp(exp((zz.yx)),-clp,clp) ;}
 warp_21=`else if (k1==3) {arg = clamp(sin(2*zz.yx),-clp,clp) ;}
@@ -429,7 +429,7 @@ comp_4=`{
 comp_5=`float2 uv2;
 comp_6=`float ang2, c, s;
 comp_7=`uv -= 0.5;
-comp_8=`uv *= aspect.xy;    
+comp_8=`uv *= aspect.xy;
 comp_9=`
 comp_10=`float2 tmp = uv;
 comp_11=`float dist = 1;

@@ -3,7 +3,7 @@ PSVERSION=2
 PSVERSION_WARP=2
 PSVERSION_COMP=2
 [preset00]
-fRating=5.000
+fRating=0.000000
 fGammaAdj=1.560
 fDecay=1.000
 fVideoEchoZoom=0.362
@@ -312,7 +312,7 @@ per_frame_23=q3 = c_x;
 per_frame_24=q4 = c_y;
 per_frame_25=q5 = v;
 per_frame_26=q6 = beat;
-per_pixel_1=d = (pow(sqrt(sqr(x-q3)+sqr(y-q4)),0.5)-0.);
+per_pixel_1=d = (pow(sqrt(sqr(x-q3)+sqr(y-q4)),0.5)-0);
 per_pixel_2=v = q5;
 per_pixel_3=dx = v*(x-q3)*d;
 per_pixel_4=dy = v*(y-q4)*d;
@@ -320,7 +320,7 @@ warp_1=`shader_body
 warp_2=`{
 warp_3=`float2 dither_uv = uv_orig*texsize.xy*texsize_noise_lq.zw*1.5 + rand_frame.xy;
 warp_4=`uv  -= (float2(0,1)*(lum(GetPixel(uv)-0.35))*texsize.zw*64)*(lum(GetPixel(uv))-0.4);
-warp_5=`ret  = GetPixel(saturate(uv)) - 0.0011 + (tex2D(sampler_noise_lq, dither_uv)-0.5)*0.0038;    
+warp_5=`ret  = GetPixel(saturate(uv)) - 0.0011 + (tex2D(sampler_noise_lq, dither_uv)-0.5)*0.0038;
 warp_6=`}
 comp_1=`shader_body
 comp_2=`{

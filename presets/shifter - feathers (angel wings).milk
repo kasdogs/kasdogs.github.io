@@ -1,5 +1,5 @@
 [preset00]
-fRating=3.000000
+fRating=5.000000
 fGammaAdj=1.700000
 fDecay=0.950000
 fVideoEchoZoom=0.999608
@@ -99,7 +99,7 @@ wave_0_per_point22=my = ox*sin(zang) + oy*cos(zang);
 wave_0_per_point23=ox = mx;
 wave_0_per_point24=oy = my;
 wave_0_per_point25=mx = ox*cos(yang) + oz*sin(yang);
-wave_0_per_point26=mz = - ox*sin(yang) + oz*cos(yang);
+wave_0_per_point26=mz = -ox*sin(yang) + oz*cos(yang);
 wave_0_per_point27=ox = mx;
 wave_0_per_point28=oz = mz;
 wave_0_per_point29=my = oy*cos(xang) - oz*sin(xang);
@@ -154,7 +154,7 @@ wave_1_per_point22=my = ox*sin(zang) + oy*cos(zang);
 wave_1_per_point23=ox = mx;
 wave_1_per_point24=oy = my;
 wave_1_per_point25=mx = ox*cos(yang) + oz*sin(yang);
-wave_1_per_point26=mz = - ox*sin(yang) + oz*cos(yang);
+wave_1_per_point26=mz = -ox*sin(yang) + oz*cos(yang);
 wave_1_per_point27=ox = mx;
 wave_1_per_point28=oz = mz;
 wave_1_per_point29=my = oy*cos(xang) - oz*sin(xang);
@@ -209,7 +209,7 @@ wave_2_per_point22=my = ox*sin(zang) + oy*cos(zang);
 wave_2_per_point23=ox = mx;
 wave_2_per_point24=oy = my;
 wave_2_per_point25=mx = ox*cos(yang) + oz*sin(yang);
-wave_2_per_point26=mz = - ox*sin(yang) + oz*cos(yang);
+wave_2_per_point26=mz = -ox*sin(yang) + oz*cos(yang);
 wave_2_per_point27=ox = mx;
 wave_2_per_point28=oz = mz;
 wave_2_per_point29=my = oy*cos(xang) - oz*sin(xang);

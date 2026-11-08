@@ -3,7 +3,7 @@ PSVERSION=3
 PSVERSION_WARP=2
 PSVERSION_COMP=3
 [preset00]
-fRating=5.000000
+fRating=0.000000
 fGammaAdj=1.980001
 fDecay=0.500000
 fVideoEchoZoom=0.999998
@@ -193,7 +193,7 @@ wave_3_per_point40=my = ox*sin(zang) + oy*cos(zang);
 wave_3_per_point41=ox = mx;
 wave_3_per_point42=oy = my;
 wave_3_per_point43=mx = ox*cos(yang) + oz*sin(yang);
-wave_3_per_point44=mz = - ox*sin(yang) + oz*cos(yang);
+wave_3_per_point44=mz = -ox*sin(yang) + oz*cos(yang);
 wave_3_per_point45=ox = mx;
 wave_3_per_point46=oz = mz;
 wave_3_per_point47=my = oy*cos(xang) - oz*sin(xang);
@@ -317,12 +317,12 @@ shapecode_3_border_b=0.500000
 shapecode_3_border_a=0.000000
 shape_3_per_frame1=x = 0.05 + rand(900)/1000;
 shape_3_per_frame2=y = 0.05 + rand(900)/1000;
-shape_3_per_frame3= 
+shape_3_per_frame3=
 per_frame_init_1=prox = 1;
 per_frame_1=dec_med = pow (0.8, 30/fps);
 per_frame_2=dec_slow = pow (0.95, 30/fps);
 per_frame_3=//dec_xlow = pow (0.999, 30/fps);
-per_frame_4=beat = max (max (bass, mid), treb); 
+per_frame_4=beat = max (max (bass, mid), treb);
 per_frame_5=avg = avg*dec_slow + beat*(1-dec_slow);
 per_frame_6=is_beat = above(beat, .2+avg+peak) * above (time, t0+.2);
 per_frame_7=t0 = is_beat*time + (1-is_beat)*t0;
@@ -383,23 +383,23 @@ per_frame_61=hy = cos(trel);
 per_frame_62=
 per_frame_63=p1z = bnot(trig1)* (p1z + (5+p1z)*speed/fps)+trig1*z0;
 per_frame_64=p1z = max(p1z,.1);
-per_frame_65=q9 = hx/(p1z); 
-per_frame_66=q10 = hy/(p1z); 
+per_frame_65=q9 = hx/(p1z);
+per_frame_66=q10 = hy/(p1z);
 per_frame_67=q11 = p1z;
 per_frame_68=q12 = .1+.02*q26*bnot((index+2)%3)*p1z*exp(-p1z/100);
 per_frame_69=
 per_frame_70=p2z = bnot(trig2)* (p2z + (5+p2z)*speed/fps)+trig2*z0;
 per_frame_71=p2z = max(p2z,.1);
-per_frame_72=q13 = 2*hx/(p2z); 
-per_frame_73=q14 = -.5*hy/(p2z); 
+per_frame_72=q13 = 2*hx/(p2z);
+per_frame_73=q14 = -.5*hy/(p2z);
 per_frame_74=q15 = p2z;
 per_frame_75=q16 = .1+.02*q26*bnot((index+2)%3)*p2z*exp(-p2z/100);
 per_frame_76=
 per_frame_77=
 per_frame_78=p3z = bnot(trig3)* (p3z + (5+p3z)*speed/fps)+trig3*z0;
 per_frame_79=p3z = max(p3z,.1);
-per_frame_80=q17 = -1.4*hx/(p3z); 
-per_frame_81=q18 = 2*hy/(p3z); 
+per_frame_80=q17 = -1.4*hx/(p3z);
+per_frame_81=q18 = 2*hy/(p3z);
 per_frame_82=q19 = p3z;
 per_frame_83=q20 = .1+.02*q26*bnot((index+2)%3)*p3z*exp(-p3z/100);
 warp_1=`float3 color, mus;
@@ -503,7 +503,7 @@ comp_75=`
 comp_76=`float mod = q22*2;
 comp_77=`float3 blk = abs(rsqrt(rad1)*dz1.x*roam_sin
 comp_78=`+rsqrt(rad2)*dz2.y*roam_sin.rbg
-comp_79=`+rsqrt(rad3)*dz3.x*roam_sin.bgr)*(.2+mirror*mask)*mod; 
+comp_79=`+rsqrt(rad3)*dz3.x*roam_sin.bgr)*(.2+mirror*mask)*mod;
 comp_80=`ret += blk;
 comp_81=`
 comp_82=`ret2 = saturate(.02*q22*q21/length (uv1)*

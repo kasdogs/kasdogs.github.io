@@ -3070,7 +3070,17 @@ void main(){
     this.blendStart = 0; this.blendDur = 0; this.presetStart = 0; this.nextPresetTime = 30;
     this.randFrame = [0, 0, 0, 0];
     this.startTime = performance.now() / 1000;
+    this.lost = false;
+    this.initGL();
+    // Mobile browsers can drop the GL context while the page is in the background (an Android file
+    // picker is enough). Ask for it back, and rebuild everything on the GPU when it returns.
+    canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); this.lost = true; });
+    canvas.addEventListener("webglcontextrestored", () => this.restoreGL());
+  }
 
+  // every GPU-side resource the engine owns that doesn't belong to a preset
+  Engine.prototype.initGL = function () {
+    const gl = this.gl;
     this.P = {
       warpFixed: compileProgram(gl, VS_MESH, FS_WARP_FIXED),
       compFixed: compileProgram(gl, VS_MESH, FS_COMP_FIXED),
@@ -3129,7 +3139,34 @@ void main(){
 
     this.makeNoise();
     this.fb = [null, null]; this.blur = []; this.cur = 0;
-  }
+  };
+
+  // the context came back empty: recreate the engine's resources, the textures and the presets' shaders
+  Engine.prototype.restoreGL = function () {
+    const gl = this.gl, w = this.W, h = this.H;
+    this.shaderCache = new Map(); this.warmFbo = null;
+    this.parallel = gl.getExtension("KHR_parallel_shader_compile");
+    this.W = this.H = 0;
+    this.initGL();
+    if (w && h) this.resize(w, h);
+    for (const [key, t] of this.userTextures) {
+      const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, t.src); gl.generateMipmap(gl.TEXTURE_2D); t.tex = tex; }
+      catch (e) { gl.deleteTexture(tex); this.userTextures.delete(key); }
+    }
+    // shader failures reported while the context was gone weren't real; compile again
+    const redo = (st, now) => {
+      if (!st) return;
+      st.errors = st.errors.filter((m) => !/^(warp|comp) shader: /.test(m));
+      st.shadersDone = false; st.startShaders();
+      if (now) st.finishShaders();
+    };
+    redo(this.state, true); redo(this.oldState, true);
+    if (this.pending) redo(this.pending.st, false);
+    this.lost = false;
+    if (this.onRestore) try { this.onRestore(); } catch (e) { console.error(e); }
+  };
 
   Engine.prototype.makeMeshVAO = function (pos, indices, n) {
     const gl = this.gl;
@@ -3235,7 +3272,7 @@ void main(){
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
     gl.generateMipmap(gl.TEXTURE_2D);
     const old = this.userTextures.get(key); if (old) gl.deleteTexture(old.tex);
-    this.userTextures.set(key, {tex: t, w: source.width || source.videoWidth, h: source.height || source.videoHeight});
+    this.userTextures.set(key, {tex: t, src: source, w: source.width || source.videoWidth, h: source.height || source.videoHeight});
     this.missingTextures.delete(key);
   };
   Engine.prototype.removeTexture = function (name) {
@@ -4065,6 +4102,7 @@ void main(){
 
   /* ======================= frame ======================= */
   Engine.prototype.render = function (audio, dt) {
+    if (this.lost || this.gl.isContextLost()) return;
     if (this.pending) this.tryActivate();
     if (!this.state) return;
     const gl = this.gl;
@@ -4154,7 +4192,7 @@ void main(){
   /* ---------------- engine ---------------- */
   const canvas = $("#gl");
   let engine;
-  try { engine = new window.MilkEngine(canvas); engine.onActivate = () => { showTitle(); updateIssues(); }; }
+  try { engine = new window.MilkEngine(canvas); engine.onActivate = () => { showTitle(); updateIssues(); }; engine.onRestore = () => updateIssues(); }
   catch (e) { console.error(e); $("#nogl").hidden = false; $("#bar").hidden = true; return; }
   const audio = new window.AudioEngine();
 

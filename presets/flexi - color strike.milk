@@ -3,7 +3,7 @@ PSVERSION=2
 PSVERSION_WARP=2
 PSVERSION_COMP=2
 [preset00]
-fRating=5.000
+fRating=5.000000
 fGammaAdj=1.000
 fDecay=1.000
 fVideoEchoZoom=2.000
@@ -265,7 +265,6 @@ shapecode_2_border_a=0.100
 shape_2_per_frame1=x = sin(time) * .4 + .5;
 shape_2_per_frame2=
 shape_2_per_frame3=
-shape_2_per_frame4=pow( (bass*.15),2);
 shapecode_3_enabled=0
 shapecode_3_sides=36
 shapecode_3_additive=0
