@@ -564,4 +564,3 @@ comp_55=`//ret = lerp(ret,retN1,sin(time));
 comp_56=`
 comp_57=`ret *= ret + (treb * .001);
 comp_58=`}
-fRating=1.000000
